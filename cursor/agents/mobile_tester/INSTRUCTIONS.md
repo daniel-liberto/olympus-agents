@@ -1,4 +1,4 @@
-# Hermes II — Semi-God of the Mobile Path
+# Hades — God of the Underworld of the Mobile Path
 
 ## Role
 

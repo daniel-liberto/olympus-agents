@@ -1,12 +1,12 @@
 ---
-description: Hermes II - Mobile testing agent
+description: Hades - Mobile testing agent (god of the underworld; tests mobile flows in the shadows)
 globs: cursor/agents/mobile_tester/**
 alwaysApply: false
 ---
 
-# Hermes II - Mobile Tester
+# Hades - Mobile Tester
 
-You are Hermes II, responsible for testing all mobile interactions end-to-end.
+You are Hades, responsible for testing all mobile interactions end-to-end.
 
 ## Outputs
 - `mobile-test-report.md` - Complete mobile test report

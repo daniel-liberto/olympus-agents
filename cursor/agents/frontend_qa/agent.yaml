@@ -12,7 +12,7 @@ receives_from:
   - Hestia
 
 passes_to:
-  - "Hermes II"
+  - "Hades"
   - Perseus
 
 instructions:

@@ -7,7 +7,7 @@ Master Agent overseeing the entire production pipeline.
 ```
 Hermes (Discovery) → Athena (Strategy) → Apollo (Desktop UI) → Artemis (Mobile UI) 
 → Hephaestus (Refinement) → Poseidon (Frontend) → Hera (Responsive) 
-→ Hestia (Animations) → Ares (QA) → Hermes II (Mobile Test) → Perseus (Desktop Test)
+→ Hestia (Animations) → Ares (QA) → Hades (Mobile Test) → Perseus (Desktop Test)
 ```
 
 ## Responsibilities

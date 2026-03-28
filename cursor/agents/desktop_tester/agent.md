@@ -16,7 +16,7 @@ Perseus, another semi-god, will focus on testing the desktop version, ensuring t
 ## Pipeline Position
 - **Receives from:** Ares (Frontend QA)
 - **Sends to:** Zeus (final report)
-- **Runs in parallel with:** Hermes II (Mobile Testing)
+- **Runs in parallel with:** Hades (Mobile Testing)
 
 ## Instructions
 1. Test the desktop version for bugs and usability issues.

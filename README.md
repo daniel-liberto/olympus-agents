@@ -18,7 +18,7 @@ Zeus (Master)
   ├── Stage 7:  Hera ............. Responsive Design
   ├── Stage 8:  Hestia ........... Animations & Micro-Interactions
   ├── Stage 9:  Ares ............. Frontend QA
-  └── Stage 10: Hermes II + Perseus (Mobile & Desktop Testing — parallel)
+  └── Stage 10: Hades + Perseus (Mobile & Desktop Testing — parallel)
 ```
 
 ## Folder Structure
@@ -67,7 +67,7 @@ cursor/agents/
 │   ├── agent.md
 │   ├── input/
 │   └── output/
-├── mobile_tester/           # Hermes II
+├── mobile_tester/           # Hades
 │   ├── agent.md
 │   ├── input/
 │   └── output/
@@ -83,7 +83,7 @@ cursor/agents/
 2. Zeus dispatches the project to **Hermes** for discovery
 3. Each agent reads from their `input/` folder and writes results to `output/`
 4. Zeus routes outputs from one agent to the next agent's input
-5. Testing agents (Hermes II + Perseus) run in parallel at the end
+5. Testing agents (Hades + Perseus) run in parallel at the end
 6. Zeus collects all reports and produces a final delivery status
 
 ## Communication Protocol

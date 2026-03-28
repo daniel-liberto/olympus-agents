@@ -217,7 +217,7 @@ Output: cursor/agents/frontend_qa/output/
   └── status.json
 ```
 
-### Stage 10a — Mobile Testing (Hermes II) ⚡ PARALELO COM PERSEUS
+### Stage 10a — Mobile Testing (Hades) ⚡ PARALELO COM PERSEUS
 
 ```
 Input:  cursor/agents/frontend_qa/output/ → cursor/agents/mobile_tester/input/
@@ -227,7 +227,7 @@ Output: cursor/agents/mobile_tester/output/
   └── status.json
 ```
 
-### Stage 10b — Desktop Testing (Perseus) ⚡ PARALELO COM HERMES II
+### Stage 10b — Desktop Testing (Perseus) ⚡ PARALELO COM HADES
 
 ```
 Input:  cursor/agents/frontend_qa/output/ → cursor/agents/desktop_tester/input/
@@ -237,7 +237,7 @@ Output: cursor/agents/desktop_tester/output/
   └── status.json
 ```
 
-> **Hermes II e Perseus rodam em paralelo** após Ares completar o QA.
+> **Hades e Perseus rodam em paralelo** após Ares completar o QA.
 
 ---
 
@@ -254,7 +254,7 @@ Output: cursor/agents/zeus/output/
 
 ### Critérios de Aprovação
 - Todos os agentes com `status: "completed"` em seus `status.json`
-- Zero bugs críticos nos relatórios de Hermes II e Perseus
+- Zero bugs críticos nos relatórios de Hades e Perseus
 - Design system consistente entre desktop e mobile
 - Performance adequada (Lighthouse > 90)
 - Acessibilidade WCAG básica atendida
@@ -335,6 +335,6 @@ git push -u origin main
 | 6 | Poseidon | Deus dos Mares | `frontend/` | Hephaestus | Hera |
 | 7 | Hera | Rainha dos Deuses | `responsive_specialist/` | Poseidon | Hestia |
 | 8 | Hestia | Deusa do Lar | `polishing/` | Hera | Ares |
-| 9 | Ares | Deus da Guerra | `frontend_qa/` | Hestia | Hermes II, Perseus |
-| 10a | Hermes II | Semideus | `mobile_tester/` | Ares | Zeus |
+| 9 | Ares | Deus da Guerra | `frontend_qa/` | Hestia | Hades, Perseus |
+| 10a | Hades | Semideus | `mobile_tester/` | Ares | Zeus |
 | 10b | Perseus | Semideus | `desktop_tester/` | Ares | Zeus |

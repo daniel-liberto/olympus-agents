@@ -20,7 +20,7 @@ pipeline_order:
   - hera          # Responsive Specialist
   - hestia        # Polishing & Animations
   - ares          # Frontend QA
-  - hermes_ii     # Mobile Testing
+  - hades         # Mobile Testing
   - perseus       # Desktop Testing
 
 subagents:
@@ -60,9 +60,9 @@ subagents:
     path: cursor/agents/frontend_qa
     name: Ares
     role: Frontend Quality Assurance
-  hermes_ii:
+  hades:
     path: cursor/agents/mobile_tester
-    name: "Hermes II"
+    name: "Hades"
     role: Mobile Testing
   perseus:
     path: cursor/agents/desktop_tester

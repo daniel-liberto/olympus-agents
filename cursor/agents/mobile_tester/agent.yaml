@@ -1,9 +1,8 @@
-name: "Hermes II"
+name: "Hades"
 role: Mobile Testing
 model: opus-4.6
 description: |
-  Hermes II, a semi-god, tests all mobile interactions, ensuring that users can
-  complete all steps without errors.
+  Hades, the god of the underworld, tests all mobile interactions in the shadows, ensuring that users can complete all steps without errors.
 
 input_path: cursor/agents/frontend_qa/output
 output_path: cursor/agents/mobile_tester/output

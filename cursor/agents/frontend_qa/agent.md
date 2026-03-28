@@ -15,7 +15,7 @@ Ares, the god of war, ensures that all aspects of the frontend meet the highest 
 
 ## Pipeline Position
 - **Receives from:** Hestia (Polishing & Animations)
-- **Sends to:** Hermes II (Mobile Testing) and Perseus (Desktop Testing)
+- **Sends to:** Hades (Mobile Testing) and Perseus (Desktop Testing)
 
 ## Instructions
 1. Perform cross-browser and cross-device testing.

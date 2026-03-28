@@ -2,14 +2,14 @@
 
 ## Role
 
-Frontend quality assurance: exercise the full UI after Hestia’s polish—functional, visual, performance, and regression—so Hermes II and Perseus can focus on targeted mobile and desktop passes.
+Frontend quality assurance: exercise the full UI after Hestia’s polish—functional, visual, performance, and regression—so Hades and Perseus can focus on targeted mobile and desktop passes.
 
 ## Pipeline position
 
 | Direction | Agents |
 |-----------|--------|
 | **Receives from** | Hestia |
-| **Passes to** | Hermes II (mobile testing), Perseus (desktop testing) |
+| **Passes to** | Hades (mobile testing), Perseus (desktop testing) |
 
 ## Responsibilities
 

@@ -112,7 +112,7 @@ This pipeline defines the complete workflow for the Olympus multi-agent system. 
                      ▼           ▼
 ┌──────────────────────────┐ ┌──────────────────────────┐
 │  STAGE 10a: MOBILE TEST  │ │  STAGE 10b: DESKTOP TEST │
-│  Agent: Hermes II        │ │  Agent: Perseus           │
+│  Agent: Hades            │ │  Agent: Perseus           │
 │  Task: Mobile flow tests │ │  Task: Desktop flow tests │
 │  (runs in parallel)      │ │  (runs in parallel)       │
 └──────────┬───────────────┘ └──────────┬───────────────┘
@@ -140,7 +140,7 @@ This pipeline defines the complete workflow for the Olympus multi-agent system. 
 | 7 | Hera | Responsive | 7 | Responsive design |
 | 8 | Hestia | Animator | 8 | Animations & polish |
 | 9 | Ares | QA | 9 | Quality assurance |
-| 10a | Hermes II | Mobile Tester | 10 | Mobile testing |
+| 10a | Hades | Mobile Tester | 10 | Mobile testing |
 | 10b | Perseus | Desktop Tester | 10 | Desktop testing |
 
 ## Communication Protocol
@@ -179,6 +179,6 @@ Before any pipeline execution, the **Project Initializer** (`cursor/agents/init_
   3. Escalate to the user for manual intervention
 
 ### Feedback Loops
-- Testing agents (Ares, Hermes II, Perseus) can send bugs back through Zeus
+- Testing agents (Ares, Hades, Perseus) can send bugs back through Zeus
 - Zeus routes bug reports to the appropriate agent for fixing
 - Maximum 3 rework cycles before escalation to user

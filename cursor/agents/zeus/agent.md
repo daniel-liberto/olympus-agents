@@ -24,7 +24,7 @@ Zeus is the master of the gods, overseeing the entire production pipeline. As th
 7. Hera (Responsive) → 
 8. Hestia (Animations) → 
 9. Ares (Frontend QA) → 
-10. Hermes II (Mobile Testing) + Perseus (Desktop Testing)
+10. Hades (Mobile Testing) + Perseus (Desktop Testing)
 ```
 
 ## Instructions
@@ -38,7 +38,7 @@ Zeus is the master of the gods, overseeing the entire production pipeline. As th
 - Each agent MUST read from their `/input` folder and write results to their `/output` folder.
 - Zeus routes outputs from one agent to the next agent's input.
 - If an agent reports issues, Zeus may loop back to a previous stage for corrections.
-- Testing agents (Ares, Hermes II, Perseus) run in the final stage and can trigger rework.
+- Testing agents (Ares, Hades, Perseus) run in the final stage and can trigger rework.
 - Zeus maintains a `pipeline-status.json` in his output folder tracking the state of each agent.
 
 ## Pipeline Status Schema
@@ -59,7 +59,7 @@ Zeus is the master of the gods, overseeing the entire production pipeline. As th
     "responsive": { "status": "pending", "agent": "Hera", "started_at": null, "completed_at": null },
     "animations": { "status": "pending", "agent": "Hestia", "started_at": null, "completed_at": null },
     "frontend_qa": { "status": "pending", "agent": "Ares", "started_at": null, "completed_at": null },
-    "mobile_testing": { "status": "pending", "agent": "Hermes II", "started_at": null, "completed_at": null },
+    "mobile_testing": { "status": "pending", "agent": "Hades", "started_at": null, "completed_at": null },
     "desktop_testing": { "status": "pending", "agent": "Perseus", "started_at": null, "completed_at": null }
   }
 }

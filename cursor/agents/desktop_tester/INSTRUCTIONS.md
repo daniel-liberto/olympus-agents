@@ -16,7 +16,7 @@ Dedicated desktop testing: validate keyboard, pointer, and large-viewport experi
 1. Run desktop-critical flows across supported browsers and resolutions relevant to the product.
 2. Check usability: navigation, forms, modals, tables, and power-user paths (shortcuts if applicable).
 3. Record defects with clear repro steps; separate desktop-only issues from general QA findings.
-4. Provide a concise readiness assessment for Zeus alongside Hermes II’s mobile report.
+4. Provide a concise readiness assessment for Zeus alongside Hades’s mobile report.
 
 ## Output format expectations
 
