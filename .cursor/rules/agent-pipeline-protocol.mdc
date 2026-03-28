@@ -1,76 +1,84 @@
 ---
-description: Protocol for agents to control the Olympus pipeline overlay status
+description: Protocol for the Olympus pipeline status synchronization between Cursor chat and visual overlay
 alwaysApply: true
 ---
 
 # Agent Pipeline Protocol
 
-Every subagent in the Olympus pipeline MUST follow this protocol to control their status in the visual overlay.
+## Architecture
 
-## How It Works
+The pipeline runs in the Cursor chat (you), and the visual overlay runs in the browser (`npm run dev`). The bridge between them is a single JSON file:
 
-The pipeline state lives in `src/contexts/PipelineContext.tsx`. Agents control their status through a JSON file at `cursor/agents/pipeline-status.json`.
+```
+cursor/agents/pipeline-status.json
+```
 
-## Pipeline Status File
+The overlay polls this file every 3 seconds. When you update it, the overlay updates automatically.
 
-The file `cursor/agents/pipeline-status.json` is the single source of truth. When an agent starts working, Zeus (or the agent itself) writes to this file.
+## Who Controls the File
 
-### Structure
+**Zeus (the Master Agent) is the ONLY entity that writes to pipeline-status.json.** Individual agents do NOT write to this file — Zeus handles all state transitions.
+
+When the user sends the starter prompt, the chat agent assumes the role of Zeus and then sequentially assumes each sub-agent's role, updating pipeline-status.json at every transition.
+
+## Pipeline Status File Format
 
 ```json
 {
   "currentAgent": "hermes",
-  "queue": ["athena", "apollo", "artemis", ...],
+  "phase": "running",
+  "queue": ["athena", "apollo", "artemis", "hephaestus", "poseidon", "hera", "hestia", "ares", "hades", "perseus"],
   "completed": {
-    "hermes": { "startedAt": "ISO", "completedAt": "ISO", "elapsedMs": 5000, "summary": "..." }
+    "hermes": {
+      "startedAt": "2026-03-28T12:00:00.000Z",
+      "completedAt": "2026-03-28T12:05:00.000Z",
+      "elapsedMs": 300000,
+      "summary": "Extracted requirements from briefing"
+    }
   },
-  "startedAt": "ISO"
+  "startedAt": "2026-03-28T12:00:00.000Z"
 }
 ```
 
-## Agent Self-Declaration Protocol
+### Phase Values
+- `"idle"` — pipeline not started
+- `"running"` — pipeline in progress
+- `"completed"` — all agents finished
 
-When you (an agent) START working:
-1. Read `cursor/agents/pipeline-status.json`
-2. Set `currentAgent` to your agent ID
-3. Remove yourself from `queue`
-4. Write the file back
+### Parallel Agents
+For parallel stages (Apollo+Artemis, Hades+Perseus), `currentAgent` can be an array:
+```json
+{ "currentAgent": ["apollo", "artemis"] }
+```
 
-When you FINISH working:
-1. Read `cursor/agents/pipeline-status.json`
-2. Move yourself from `currentAgent` to `completed` with timing data
-3. Set `currentAgent` to the next agent in `queue` (or null if empty)
-4. Write the file back
-5. Write your `status.json` to your output folder
+## Individual Agent Output
 
-## Agent IDs
-
-| Agent | ID |
-|-------|----|
-| Hermes | hermes |
-| Athena | athena |
-| Apollo | apollo |
-| Artemis | artemis |
-| Hephaestus | hephaestus |
-| Poseidon | poseidon |
-| Hera | hera |
-| Hestia | hestia |
-| Ares | ares |
-| Hades | hades |
-| Perseus | perseus |
-
-## Output status.json Format
-
-Each agent writes to their `output/status.json`:
+Each agent also writes a `status.json` to their own `output/` folder:
 
 ```json
 {
-  "agent": "agent_id",
+  "agent": "hermes",
   "status": "completed",
-  "startedAt": "2026-03-28T12:00:00Z",
-  "completedAt": "2026-03-28T12:05:00Z",
+  "startedAt": "2026-03-28T12:00:00.000Z",
+  "completedAt": "2026-03-28T12:05:00.000Z",
   "elapsedMs": 300000,
   "summary": "Brief description of what was done",
-  "outputFiles": ["file1.md", "file2.md"]
+  "outputFiles": ["scope.md", "sitemap.md", "user-flows.md"]
 }
 ```
+
+## Agent IDs
+
+| Agent | ID | Folder |
+|-------|----|--------|
+| Hermes | hermes | discovery/ |
+| Athena | athena | product_strategist/ |
+| Apollo | apollo | ui_ux_desktop/ |
+| Artemis | artemis | ui_ux_mobile/ |
+| Hephaestus | hephaestus | ui_ux_refiner/ |
+| Poseidon | poseidon | frontend/ |
+| Hera | hera | responsive_specialist/ |
+| Hestia | hestia | polishing/ |
+| Ares | ares | frontend_qa/ |
+| Hades | hades | mobile_tester/ |
+| Perseus | perseus | desktop_tester/ |

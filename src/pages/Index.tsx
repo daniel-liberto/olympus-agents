@@ -1,20 +1,25 @@
-import { BookOpen, ArrowRight, FileText, Play, Eye, RotateCcw } from 'lucide-react';
+import { BookOpen, ArrowRight, FileText, Copy, Eye, RotateCcw, Terminal } from 'lucide-react';
 
 const steps = [
   {
     icon: FileText,
     title: 'Prepare o Briefing',
-    description: 'Crie um documento PDF ou Markdown descrevendo o projeto que deseja construir — escopo, funcionalidades, público-alvo e referências visuais.',
+    description: 'Crie um documento PDF ou Markdown descrevendo o projeto — escopo, funcionalidades, público-alvo e referências visuais.',
   },
   {
-    icon: Play,
-    title: 'Inicie a Jornada',
-    description: 'No painel inferior direito, arraste o documento para a área de upload e clique no botão Play. Hermes será o primeiro a receber e analisar seu briefing.',
+    icon: Terminal,
+    title: 'Inicie o Dev Server',
+    description: 'Execute npm run dev para iniciar o overlay visual. Ele vai acompanhar o progresso dos agentes em tempo real.',
+  },
+  {
+    icon: Copy,
+    title: 'Copie o Starter Prompt',
+    description: 'No painel inferior direito, copie o Starter Prompt e cole no chat do Cursor IDE. Anexe o documento de briefing junto à mensagem.',
   },
   {
     icon: Eye,
     title: 'Acompanhe em Tempo Real',
-    description: 'Cada agente trabalha em sequência. O overlay mostra quem está ativo, o tempo decorrido e a fila de espera. Clique em qualquer deus para ver seus detalhes e ferramentas.',
+    description: 'Zeus assume o controle e ativa cada agente na sequência. O overlay mostra quem está trabalhando, o tempo e a fila. Clique em qualquer deus para ver detalhes.',
   },
   {
     icon: RotateCcw,

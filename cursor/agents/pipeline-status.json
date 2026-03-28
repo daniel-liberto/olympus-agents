@@ -1,5 +1,6 @@
 {
   "currentAgent": null,
+  "phase": "idle",
   "queue": [],
   "completed": {},
   "startedAt": null

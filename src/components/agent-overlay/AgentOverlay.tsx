@@ -6,7 +6,7 @@ import { AgentAvatar } from './AgentAvatar';
 import { ActiveAgentCard } from './ActiveAgentCard';
 import { QueueTimeline } from './QueueTimeline';
 import { PipelineProgress } from './PipelineProgress';
-import { BriefingUpload } from './BriefingUpload';
+import { StarterPrompt } from './StarterPrompt';
 import { AgentDetailModal } from './AgentDetailModal';
 import { useAgentTimer } from '@/hooks/use-agent-timer';
 import type { AgentInfo } from '@/types/agents';
@@ -14,7 +14,7 @@ import type { AgentInfo } from '@/types/agents';
 export function AgentOverlay() {
   const [isExpanded, setIsExpanded] = useState(true);
   const [selectedAgent, setSelectedAgent] = useState<AgentInfo | null>(null);
-  const { agents, phase, startPipeline, resetPipeline } = usePipeline();
+  const { agents, phase, resetPipeline } = usePipeline();
 
   const allAgents = agents;
   const pipelineAgents = agents.filter(a => a.id !== 'zeus');
@@ -28,10 +28,6 @@ export function AgentOverlay() {
 
   const totalTime = completed.reduce((acc, a) => acc + (a.elapsedMs || 0), 0)
     + (activeAgent?.startedAt ? Date.now() - activeAgent.startedAt : 0);
-
-  const handleStart = useCallback((file: File) => {
-    startPipeline(file.name);
-  }, [startPipeline]);
 
   const handleAgentClick = useCallback((agent: AgentInfo) => {
     setSelectedAgent(agent);
@@ -93,10 +89,10 @@ export function AgentOverlay() {
                       <div className="flex items-center gap-1.5 mb-2 px-1">
                         <Crown className="w-3 h-3 text-amber-400/60" />
                         <span className="text-[10px] font-medium uppercase tracking-wider text-zinc-500">
-                          Iniciar Jornada
+                          Starter Prompt
                         </span>
                       </div>
-                      <BriefingUpload onStart={handleStart} />
+                      <StarterPrompt />
                     </div>
                   </div>
                 )}

@@ -1,6 +1,27 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
+import fs from "fs";
+
+function pipelineStatusPlugin() {
+  return {
+    name: 'pipeline-status',
+    configureServer(server: any) {
+      server.middlewares.use('/api/pipeline-status', (_req: any, res: any) => {
+        const filePath = path.resolve(__dirname, 'cursor/agents/pipeline-status.json');
+        try {
+          const content = fs.readFileSync(filePath, 'utf-8');
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Cache-Control', 'no-store');
+          res.end(content);
+        } catch {
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({ currentAgent: null, phase: 'idle', queue: [], completed: {}, startedAt: null }));
+        }
+      });
+    },
+  };
+}
 
 export default defineConfig(({ mode }) => {
   const isProduction = mode === 'production';
@@ -26,7 +47,7 @@ export default defineConfig(({ mode }) => {
       cssCodeSplit: true,
       reportCompressedSize: false,
     },
-    plugins: [react()],
+    plugins: [pipelineStatusPlugin(), react()],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),

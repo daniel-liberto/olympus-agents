@@ -1,158 +1,135 @@
-import { createContext, useContext, useState, useCallback, useRef, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 import { PIPELINE_AGENTS } from '@/data/agents';
 import type { AgentInfo, AgentStatus } from '@/types/agents';
 
-const PIPELINE_ORDER = [
-  'hermes', 'athena', 'apollo', 'artemis',
-  'hephaestus', 'poseidon', 'hera', 'hestia',
-  'ares', 'hades', 'perseus',
-];
-
-const STORAGE_KEY = 'olympus-pipeline-state';
+const POLL_INTERVAL = 3000;
 
 export type PipelinePhase = 'idle' | 'running' | 'completed';
+
+interface CompletedEntry {
+  startedAt: string;
+  completedAt: string;
+  elapsedMs: number;
+  summary?: string;
+}
+
+interface PipelineStatusFile {
+  currentAgent: string | string[] | null;
+  phase?: string;
+  queue: string[];
+  completed: Record<string, CompletedEntry>;
+  startedAt: string | null;
+}
 
 interface PipelineContextValue {
   agents: AgentInfo[];
   isRunning: boolean;
   phase: PipelinePhase;
   currentAgentId: string | null;
-  briefingFile: string | null;
-  activateAgent: (agentId: string) => void;
-  completeAgent: (agentId: string, summary?: string) => void;
-  errorAgent: (agentId: string, reason?: string) => void;
   resetPipeline: () => void;
-  startPipeline: (briefingFileName?: string) => void;
   getAgent: (agentId: string) => AgentInfo | undefined;
   getActiveAgent: () => AgentInfo | undefined;
 }
 
 const PipelineContext = createContext<PipelineContextValue | null>(null);
 
-function loadPersistedState(): AgentInfo[] | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed) && parsed.length === PIPELINE_AGENTS.length) {
-      return parsed.map((saved: any, i: number) => ({
-        ...PIPELINE_AGENTS[i],
-        status: saved.status || 'idle',
-        startedAt: saved.startedAt,
-        completedAt: saved.completedAt,
-        elapsedMs: saved.elapsedMs,
-      }));
+function deriveAgents(status: PipelineStatusFile): AgentInfo[] {
+  const currentAgents = Array.isArray(status.currentAgent)
+    ? status.currentAgent
+    : status.currentAgent ? [status.currentAgent] : [];
+
+  return PIPELINE_AGENTS.map(base => {
+    if (base.id === 'zeus') return { ...base, status: 'idle' as AgentStatus };
+
+    if (currentAgents.includes(base.id)) {
+      const entry = status.completed[base.id];
+      return {
+        ...base,
+        status: 'active' as AgentStatus,
+        startedAt: entry?.startedAt ? new Date(entry.startedAt).getTime() : Date.now(),
+      };
     }
-  } catch {}
-  return null;
+
+    if (status.completed[base.id]) {
+      const entry = status.completed[base.id];
+      return {
+        ...base,
+        status: 'completed' as AgentStatus,
+        startedAt: new Date(entry.startedAt).getTime(),
+        completedAt: new Date(entry.completedAt).getTime(),
+        elapsedMs: entry.elapsedMs,
+      };
+    }
+
+    if (status.queue.includes(base.id)) {
+      return { ...base, status: 'waiting' as AgentStatus };
+    }
+
+    return { ...base, status: 'idle' as AgentStatus };
+  });
 }
 
-function persistState(agents: AgentInfo[]) {
-  try {
-    const minimal = agents.map(a => ({
-      id: a.id,
-      status: a.status,
-      startedAt: a.startedAt,
-      completedAt: a.completedAt,
-      elapsedMs: a.elapsedMs,
-    }));
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(minimal));
-  } catch {}
+function derivePhase(status: PipelineStatusFile): PipelinePhase {
+  if (status.phase === 'completed') return 'completed';
+  if (status.phase === 'running') return 'running';
+  if (status.currentAgent) return 'running';
+  if (Object.keys(status.completed).length > 0 && !status.currentAgent && status.queue.length === 0) return 'completed';
+  return 'idle';
 }
+
+const DEFAULT_STATUS: PipelineStatusFile = {
+  currentAgent: null,
+  phase: 'idle',
+  queue: [],
+  completed: {},
+  startedAt: null,
+};
 
 export function PipelineProvider({ children }: { children: ReactNode }) {
-  const [agents, setAgents] = useState<AgentInfo[]>(() => {
-    return loadPersistedState() || PIPELINE_AGENTS.map(a => ({ ...a }));
-  });
-  const agentsRef = useRef(agents);
-  agentsRef.current = agents;
+  const [status, setStatus] = useState<PipelineStatusFile>(DEFAULT_STATUS);
 
   useEffect(() => {
-    persistState(agents);
-  }, [agents]);
+    let active = true;
 
-  const [briefingFile, setBriefingFile] = useState<string | null>(null);
+    async function poll() {
+      try {
+        const res = await fetch('/api/pipeline-status', { cache: 'no-store' });
+        if (res.ok && active) {
+          const data: PipelineStatusFile = await res.json();
+          setStatus(data);
+        }
+      } catch {
+        // dev server not running or file not found — keep current state
+      }
+    }
 
-  const hasActive = agents.some(a => a.status === 'active' || a.status === 'waiting');
-  const pipelineAgents = agents.filter(a => a.id !== 'zeus');
-  const allCompleted = pipelineAgents.length > 0 && pipelineAgents.every(a => a.status === 'completed');
+    poll();
+    const interval = setInterval(poll, POLL_INTERVAL);
+    return () => { active = false; clearInterval(interval); };
+  }, []);
 
-  const phase: PipelinePhase = allCompleted ? 'completed' : hasActive ? 'running' : 'idle';
+  const agents = deriveAgents(status);
+  const phase = derivePhase(status);
   const isRunning = phase === 'running';
-  const currentAgentId = agents.find(a => a.status === 'active')?.id || null;
 
-  const activateAgent = useCallback((agentId: string) => {
-    const now = Date.now();
-    setAgents(prev => {
-      const agentIndex = PIPELINE_ORDER.indexOf(agentId);
-      return prev.map(a => {
-        if (a.id === agentId) {
-          return { ...a, status: 'active' as AgentStatus, startedAt: now, completedAt: undefined, elapsedMs: undefined };
-        }
-        const futureIndex = PIPELINE_ORDER.indexOf(a.id);
-        if (futureIndex > agentIndex && (a.status === 'idle' || a.status === 'waiting')) {
-          return { ...a, status: 'waiting' as AgentStatus };
-        }
-        return a;
-      });
-    });
-  }, []);
-
-  const completeAgent = useCallback((agentId: string, _summary?: string) => {
-    const completedAt = Date.now();
-    setAgents(prev => prev.map(a => {
-      if (a.id === agentId) {
-        return {
-          ...a,
-          status: 'completed' as AgentStatus,
-          completedAt,
-          elapsedMs: completedAt - (a.startedAt || completedAt),
-        };
-      }
-      return a;
-    }));
-  }, []);
-
-  const errorAgent = useCallback((agentId: string, _reason?: string) => {
-    setAgents(prev => prev.map(a => {
-      if (a.id === agentId) {
-        return { ...a, status: 'error' as AgentStatus, completedAt: Date.now() };
-      }
-      return a;
-    }));
-  }, []);
-
-  const startPipeline = useCallback((briefingFileName?: string) => {
-    if (briefingFileName) setBriefingFile(briefingFileName);
-    const fresh = PIPELINE_AGENTS.map(a => ({ ...a, status: 'idle' as AgentStatus }));
-    setAgents(fresh);
-    setTimeout(() => {
-      const now = Date.now();
-      setAgents(prev => prev.map(a => {
-        if (a.id === 'hermes') {
-          return { ...a, status: 'active' as AgentStatus, startedAt: now };
-        }
-        if (PIPELINE_ORDER.indexOf(a.id) > 0) {
-          return { ...a, status: 'waiting' as AgentStatus };
-        }
-        return a;
-      }));
-    }, 50);
-  }, []);
+  const currentAgents = Array.isArray(status.currentAgent)
+    ? status.currentAgent
+    : status.currentAgent ? [status.currentAgent] : [];
+  const currentAgentId = currentAgents[0] || null;
 
   const resetPipeline = useCallback(() => {
-    setAgents(PIPELINE_AGENTS.map(a => ({ ...a, status: 'idle' as AgentStatus })));
-    setBriefingFile(null);
-    localStorage.removeItem(STORAGE_KEY);
+    setStatus(DEFAULT_STATUS);
   }, []);
 
   const getAgent = useCallback((agentId: string) => {
-    return agentsRef.current.find(a => a.id === agentId);
-  }, []);
+    return deriveAgents(status).find(a => a.id === agentId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
 
   const getActiveAgent = useCallback(() => {
-    return agentsRef.current.find(a => a.status === 'active');
-  }, []);
+    return deriveAgents(status).find(a => a.status === 'active');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
 
   return (
     <PipelineContext.Provider value={{
@@ -160,12 +137,7 @@ export function PipelineProvider({ children }: { children: ReactNode }) {
       isRunning,
       phase,
       currentAgentId,
-      briefingFile,
-      activateAgent,
-      completeAgent,
-      errorAgent,
       resetPipeline,
-      startPipeline,
       getAgent,
       getActiveAgent,
     }}>
