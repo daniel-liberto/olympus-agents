@@ -5,13 +5,20 @@ import { cn } from '@/lib/utils';
 
 interface QueueTimelineProps {
   agents: AgentInfo[];
+  onAgentClick?: (agent: AgentInfo) => void;
 }
 
-function CompletedRow({ agent }: { agent: AgentInfo }) {
+function CompletedRow({ agent, onClick }: { agent: AgentInfo; onClick?: () => void }) {
   const { formatTime } = useAgentTimer(false);
 
   return (
-    <div className="flex items-center gap-2.5 py-1.5 opacity-70 hover:opacity-100 transition-opacity">
+    <div
+      className={cn(
+        'flex items-center gap-2.5 py-1.5 opacity-70 hover:opacity-100 transition-opacity',
+        onClick && 'cursor-pointer',
+      )}
+      onClick={onClick}
+    >
       <AgentAvatar src={agent.image} name={agent.name} size="sm" status="completed" />
       <div className="flex-1 min-w-0">
         <span className="text-xs text-zinc-300 truncate block">{agent.name}</span>
@@ -24,9 +31,15 @@ function CompletedRow({ agent }: { agent: AgentInfo }) {
   );
 }
 
-function WaitingRow({ agent, position }: { agent: AgentInfo; position: number }) {
+function WaitingRow({ agent, position, onClick }: { agent: AgentInfo; position: number; onClick?: () => void }) {
   return (
-    <div className="flex items-center gap-2.5 py-1.5 opacity-50 hover:opacity-80 transition-opacity">
+    <div
+      className={cn(
+        'flex items-center gap-2.5 py-1.5 opacity-50 hover:opacity-80 transition-opacity',
+        onClick && 'cursor-pointer',
+      )}
+      onClick={onClick}
+    >
       <AgentAvatar src={agent.image} name={agent.name} size="sm" status="waiting" />
       <div className="flex-1 min-w-0">
         <span className="text-xs text-zinc-400 truncate block">{agent.name}</span>
@@ -39,7 +52,7 @@ function WaitingRow({ agent, position }: { agent: AgentInfo; position: number })
   );
 }
 
-export function QueueTimeline({ agents }: QueueTimelineProps) {
+export function QueueTimeline({ agents, onAgentClick }: QueueTimelineProps) {
   const completed = agents.filter(a => a.status === 'completed');
   const waiting = agents.filter(a => a.status === 'waiting' || a.status === 'idle');
   const queuedWaiting = waiting.filter(a => a.status === 'waiting');
@@ -56,7 +69,7 @@ export function QueueTimeline({ agents }: QueueTimelineProps) {
           </div>
           <div className="space-y-0.5">
             {completed.map(agent => (
-              <CompletedRow key={agent.id} agent={agent} />
+              <CompletedRow key={agent.id} agent={agent} onClick={onAgentClick ? () => onAgentClick(agent) : undefined} />
             ))}
           </div>
         </div>
@@ -72,7 +85,7 @@ export function QueueTimeline({ agents }: QueueTimelineProps) {
           </div>
           <div className="space-y-0.5">
             {queuedWaiting.map((agent, i) => (
-              <WaitingRow key={agent.id} agent={agent} position={i + 1} />
+              <WaitingRow key={agent.id} agent={agent} position={i + 1} onClick={onAgentClick ? () => onAgentClick(agent) : undefined} />
             ))}
           </div>
         </div>

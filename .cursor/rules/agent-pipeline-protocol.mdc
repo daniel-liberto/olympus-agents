@@ -1,0 +1,76 @@
+---
+description: Protocol for agents to control the Olympus pipeline overlay status
+alwaysApply: true
+---
+
+# Agent Pipeline Protocol
+
+Every subagent in the Olympus pipeline MUST follow this protocol to control their status in the visual overlay.
+
+## How It Works
+
+The pipeline state lives in `src/contexts/PipelineContext.tsx`. Agents control their status through a JSON file at `cursor/agents/pipeline-status.json`.
+
+## Pipeline Status File
+
+The file `cursor/agents/pipeline-status.json` is the single source of truth. When an agent starts working, Zeus (or the agent itself) writes to this file.
+
+### Structure
+
+```json
+{
+  "currentAgent": "hermes",
+  "queue": ["athena", "apollo", "artemis", ...],
+  "completed": {
+    "hermes": { "startedAt": "ISO", "completedAt": "ISO", "elapsedMs": 5000, "summary": "..." }
+  },
+  "startedAt": "ISO"
+}
+```
+
+## Agent Self-Declaration Protocol
+
+When you (an agent) START working:
+1. Read `cursor/agents/pipeline-status.json`
+2. Set `currentAgent` to your agent ID
+3. Remove yourself from `queue`
+4. Write the file back
+
+When you FINISH working:
+1. Read `cursor/agents/pipeline-status.json`
+2. Move yourself from `currentAgent` to `completed` with timing data
+3. Set `currentAgent` to the next agent in `queue` (or null if empty)
+4. Write the file back
+5. Write your `status.json` to your output folder
+
+## Agent IDs
+
+| Agent | ID |
+|-------|----|
+| Hermes | hermes |
+| Athena | athena |
+| Apollo | apollo |
+| Artemis | artemis |
+| Hephaestus | hephaestus |
+| Poseidon | poseidon |
+| Hera | hera |
+| Hestia | hestia |
+| Ares | ares |
+| Hades | hades |
+| Perseus | perseus |
+
+## Output status.json Format
+
+Each agent writes to their `output/status.json`:
+
+```json
+{
+  "agent": "agent_id",
+  "status": "completed",
+  "startedAt": "2026-03-28T12:00:00Z",
+  "completedAt": "2026-03-28T12:05:00Z",
+  "elapsedMs": 300000,
+  "summary": "Brief description of what was done",
+  "outputFiles": ["file1.md", "file2.md"]
+}
+```
