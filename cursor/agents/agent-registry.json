@@ -1,0 +1,175 @@
+{
+  "system": "Olympus Agent Pipeline",
+  "version": "1.1.0",
+  "initializer": {
+    "name": "Project Initializer",
+    "codename": "init_project",
+    "role": "Project Initialization and Setup",
+    "model": "opus-4.6",
+    "config_file": "cursor/agents/init_project.md",
+    "paths": {
+      "input": "cursor/agents/init_project/input",
+      "output": "cursor/agents/init_project/output"
+    },
+    "sends_to": ["zeus"],
+    "phases": ["setup", "pipeline", "review", "deploy"]
+  },
+  "master": {
+    "name": "Zeus",
+    "codename": "zeus",
+    "role": "Master Agent",
+    "model": "opus-4.6",
+    "paths": {
+      "input": "/cursor/agents/zeus/input",
+      "output": "/cursor/agents/zeus/output"
+    }
+  },
+  "agents": [
+    {
+      "stage": 1,
+      "name": "Hermes",
+      "codename": "discovery",
+      "role": "Discovery and Requirement Gathering",
+      "model": "opus-4.6",
+      "paths": {
+        "input": "/cursor/agents/discovery/input",
+        "output": "/cursor/agents/discovery/output"
+      },
+      "receives_from": ["zeus"],
+      "sends_to": ["product_strategist"]
+    },
+    {
+      "stage": 2,
+      "name": "Athena",
+      "codename": "product_strategist",
+      "role": "Product Flow and Strategy Design",
+      "model": "opus-4.6",
+      "paths": {
+        "input": "/cursor/agents/product_strategist/input",
+        "output": "/cursor/agents/product_strategist/output"
+      },
+      "receives_from": ["discovery"],
+      "sends_to": ["ui_ux_desktop"]
+    },
+    {
+      "stage": 3,
+      "name": "Apollo",
+      "codename": "ui_ux_desktop",
+      "role": "Desktop UI/UX Design",
+      "model": "opus-4.6",
+      "paths": {
+        "input": "/cursor/agents/ui_ux_desktop/input",
+        "output": "/cursor/agents/ui_ux_desktop/output"
+      },
+      "receives_from": ["product_strategist"],
+      "sends_to": ["ui_ux_mobile"]
+    },
+    {
+      "stage": 4,
+      "name": "Artemis",
+      "codename": "ui_ux_mobile",
+      "role": "Mobile UI/UX Design",
+      "model": "opus-4.6",
+      "paths": {
+        "input": "/cursor/agents/ui_ux_mobile/input",
+        "output": "/cursor/agents/ui_ux_mobile/output"
+      },
+      "receives_from": ["ui_ux_desktop"],
+      "sends_to": ["ui_ux_refiner"]
+    },
+    {
+      "stage": 5,
+      "name": "Hephaestus",
+      "codename": "ui_ux_refiner",
+      "role": "Visual Refinement and Polish",
+      "model": "opus-4.6",
+      "paths": {
+        "input": "/cursor/agents/ui_ux_refiner/input",
+        "output": "/cursor/agents/ui_ux_refiner/output"
+      },
+      "receives_from": ["ui_ux_desktop", "ui_ux_mobile"],
+      "sends_to": ["frontend"]
+    },
+    {
+      "stage": 6,
+      "name": "Poseidon",
+      "codename": "frontend",
+      "role": "Front-end Implementation",
+      "model": "opus-4.6",
+      "paths": {
+        "input": "/cursor/agents/frontend/input",
+        "output": "/cursor/agents/frontend/output"
+      },
+      "receives_from": ["ui_ux_refiner"],
+      "sends_to": ["responsive_specialist"],
+      "tech_stack": ["React", "Vite", "TypeScript", "TailwindCSS"]
+    },
+    {
+      "stage": 7,
+      "name": "Hera",
+      "codename": "responsive_specialist",
+      "role": "Ensuring Responsive Design Across Devices",
+      "model": "opus-4.6",
+      "paths": {
+        "input": "/cursor/agents/responsive_specialist/input",
+        "output": "/cursor/agents/responsive_specialist/output"
+      },
+      "receives_from": ["frontend"],
+      "sends_to": ["polishing"]
+    },
+    {
+      "stage": 8,
+      "name": "Hestia",
+      "codename": "polishing",
+      "role": "Animations and Micro-Interactions",
+      "model": "opus-4.6",
+      "paths": {
+        "input": "/cursor/agents/polishing/input",
+        "output": "/cursor/agents/polishing/output"
+      },
+      "receives_from": ["responsive_specialist"],
+      "sends_to": ["frontend_qa"]
+    },
+    {
+      "stage": 9,
+      "name": "Ares",
+      "codename": "frontend_qa",
+      "role": "Frontend Quality Assurance",
+      "model": "opus-4.6",
+      "paths": {
+        "input": "/cursor/agents/frontend_qa/input",
+        "output": "/cursor/agents/frontend_qa/output"
+      },
+      "receives_from": ["polishing"],
+      "sends_to": ["mobile_tester", "desktop_tester"]
+    },
+    {
+      "stage": 10,
+      "name": "Hermes II",
+      "codename": "mobile_tester",
+      "role": "Mobile Testing",
+      "model": "opus-4.6",
+      "paths": {
+        "input": "/cursor/agents/mobile_tester/input",
+        "output": "/cursor/agents/mobile_tester/output"
+      },
+      "receives_from": ["frontend_qa"],
+      "sends_to": ["zeus"],
+      "parallel_with": "desktop_tester"
+    },
+    {
+      "stage": 10,
+      "name": "Perseus",
+      "codename": "desktop_tester",
+      "role": "Desktop Testing",
+      "model": "opus-4.6",
+      "paths": {
+        "input": "/cursor/agents/desktop_tester/input",
+        "output": "/cursor/agents/desktop_tester/output"
+      },
+      "receives_from": ["frontend_qa"],
+      "sends_to": ["zeus"],
+      "parallel_with": "mobile_tester"
+    }
+  ]
+}

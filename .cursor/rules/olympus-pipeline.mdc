@@ -1,0 +1,39 @@
+---
+description: Olympus Pipeline - Master configuration for the agent team
+alwaysApply: true
+---
+
+# Olympus Agent Pipeline
+
+This project uses a team of 12 AI agents (the Olympus team) to manage a complete production pipeline from discovery to testing, with a reusable **Project Initializer** to bootstrap each new project.
+
+## Starting a New Project
+1. Follow `cursor/agents/init_project.md` — the reusable initializer
+2. Place client briefing in `cursor/agents/zeus/input/briefing.md`
+3. The pipeline starts automatically: Initializer → Zeus → Hermes → ...
+
+## Agent Team
+| Agent | God | Role | Folder |
+|-------|-----|------|--------|
+| Initializer | — | Project Setup | cursor/agents/init_project/ |
+| Zeus | King of Gods | Master Orchestrator | cursor/agents/zeus/ |
+| Hermes | Messenger God | Discovery | cursor/agents/discovery/ |
+| Athena | Goddess of Wisdom | Product Strategy | cursor/agents/product_strategist/ |
+| Apollo | God of Arts | Desktop UI/UX | cursor/agents/ui_ux_desktop/ |
+| Artemis | Goddess of Hunt | Mobile UI/UX | cursor/agents/ui_ux_mobile/ |
+| Hephaestus | God of Craft | Visual Refinement | cursor/agents/ui_ux_refiner/ |
+| Poseidon | God of Seas | Frontend Dev | cursor/agents/frontend/ |
+| Hera | Queen of Gods | Responsive Design | cursor/agents/responsive_specialist/ |
+| Hestia | Goddess of Hearth | Animations | cursor/agents/polishing/ |
+| Ares | God of War | Frontend QA | cursor/agents/frontend_qa/ |
+| Hermes II | Semi-god | Mobile Testing | cursor/agents/mobile_tester/ |
+| Perseus | Semi-god | Desktop Testing | cursor/agents/desktop_tester/ |
+
+## Pipeline Flow
+**Phase 0:** Init (setup, Git, clean) → **Phase 1:** Discovery → Strategy → UI/UX (Desktop + Mobile parallel) → Refinement → Frontend → Responsive → Animations → QA → Testing (Mobile + Desktop parallel) → **Phase 2:** Zeus Final Review → **Phase 3:** Deploy
+
+## Communication
+- Each agent reads from their `input/` folder and writes to their `output/` folder
+- Zeus coordinates the pipeline and manages hand-offs between agents
+- All agents use model: opus-4.6
+- To start a new project, follow `cursor/agents/init_project.md`
