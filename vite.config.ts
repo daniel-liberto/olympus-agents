@@ -19,6 +19,19 @@ function pipelineStatusPlugin() {
           res.end(JSON.stringify({ currentAgent: null, phase: 'idle', queue: [], completed: {}, startedAt: null }));
         }
       });
+
+      server.middlewares.use('/api/final-report', (_req: any, res: any) => {
+        const filePath = path.resolve(__dirname, 'cursor/agents/zeus/output/final-delivery.md');
+        try {
+          const content = fs.readFileSync(filePath, 'utf-8');
+          res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+          res.setHeader('Cache-Control', 'no-store');
+          res.end(content);
+        } catch {
+          res.statusCode = 404;
+          res.end('');
+        }
+      });
     },
   };
 }

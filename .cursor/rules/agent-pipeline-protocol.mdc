@@ -25,18 +25,19 @@ When the user sends the starter prompt, the chat agent assumes the role of Zeus 
 
 ```json
 {
-  "currentAgent": "hermes",
+  "currentAgent": "athena",
+  "activeStartedAt": "2026-03-28T20:44:41.239Z",
   "phase": "running",
-  "queue": ["athena", "apollo", "artemis", "hephaestus", "poseidon", "hera", "hestia", "ares", "hades", "perseus"],
+  "queue": ["apollo", "artemis", "hephaestus", "poseidon", "hera", "hestia", "ares", "hades", "perseus"],
   "completed": {
     "hermes": {
-      "startedAt": "2026-03-28T12:00:00.000Z",
-      "completedAt": "2026-03-28T12:05:00.000Z",
-      "elapsedMs": 300000,
+      "startedAt": "2026-03-28T20:42:13.847Z",
+      "completedAt": "2026-03-28T20:44:41.239Z",
+      "elapsedMs": 147392,
       "summary": "Extracted requirements from briefing"
     }
   },
-  "startedAt": "2026-03-28T12:00:00.000Z"
+  "startedAt": "2026-03-28T20:42:13.847Z"
 }
 ```
 
@@ -45,11 +46,8 @@ When the user sends the starter prompt, the chat agent assumes the role of Zeus 
 - `"running"` — pipeline in progress
 - `"completed"` — all agents finished
 
-### Parallel Agents
-For parallel stages (Apollo+Artemis, Hades+Perseus), `currentAgent` can be an array:
-```json
-{ "currentAgent": ["apollo", "artemis"] }
-```
+### Sequential Execution
+All agents run ONE AT A TIME. `currentAgent` is always a single string, never an array.
 
 ## Individual Agent Output
 

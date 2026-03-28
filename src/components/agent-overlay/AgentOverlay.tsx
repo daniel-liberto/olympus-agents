@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { ChevronDown, ChevronUp, Zap, Crown, RotateCcw } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
+import { ChevronDown, ChevronUp, Zap, Crown, Scroll, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { usePipeline } from '@/contexts/PipelineContext';
 import { AgentAvatar } from './AgentAvatar';
@@ -14,6 +14,8 @@ import type { AgentInfo } from '@/types/agents';
 export function AgentOverlay() {
   const [isExpanded, setIsExpanded] = useState(true);
   const [selectedAgent, setSelectedAgent] = useState<AgentInfo | null>(null);
+  const [reportContent, setReportContent] = useState<string | null>(null);
+  const [showReport, setShowReport] = useState(false);
   const { agents, phase, resetPipeline } = usePipeline();
 
   const allAgents = agents;
@@ -29,6 +31,21 @@ export function AgentOverlay() {
   const totalTime = completed.reduce((acc, a) => acc + (a.elapsedMs || 0), 0)
     + (activeAgent?.startedAt ? Date.now() - activeAgent.startedAt : 0);
 
+  useEffect(() => {
+    if (phase !== 'completed') return;
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetch('/api/final-report', { cache: 'no-store' });
+        if (res.ok && active) {
+          const text = await res.text();
+          if (text.trim()) setReportContent(text);
+        }
+      } catch {}
+    })();
+    return () => { active = false; };
+  }, [phase]);
+
   const handleAgentClick = useCallback((agent: AgentInfo) => {
     setSelectedAgent(agent);
   }, []);
@@ -42,6 +59,24 @@ export function AgentOverlay() {
         />
       )}
 
+      {showReport && reportContent && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6" onClick={() => setShowReport(false)}>
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+          <div
+            className="relative bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[80vh] overflow-hidden animate-in zoom-in-95 fade-in duration-200"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-2 px-5 py-4 border-b border-zinc-800">
+              <Scroll className="w-4 h-4 text-amber-400" />
+              <h2 className="text-sm font-semibold text-zinc-200">Relatório Final — Zeus</h2>
+            </div>
+            <div className="p-5 overflow-y-auto max-h-[calc(80vh-56px)] scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
+              <pre className="text-xs text-zinc-400 leading-relaxed whitespace-pre-wrap font-mono">{reportContent}</pre>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="fixed bottom-4 right-4 z-50 w-80">
         <div className={cn(
           'bg-zinc-950/95 backdrop-blur-xl border border-zinc-800/80 rounded-2xl',
@@ -50,10 +85,10 @@ export function AgentOverlay() {
         )}>
           {isExpanded && (
             <div className="animate-in slide-in-from-bottom-2 fade-in duration-300">
-              <div className="max-h-[480px] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
 
-                {/* === IDLE STATE: Gods Gallery + Briefing Upload === */}
-                {phase === 'idle' && (
+              {/* === IDLE STATE === */}
+              {phase === 'idle' && (
+                <div className="max-h-[480px] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent">
                   <div className="p-3 space-y-3">
                     <div className="grid grid-cols-6 gap-1.5">
                       {allAgents.map(agent => (
@@ -84,7 +119,6 @@ export function AgentOverlay() {
                         </button>
                       ))}
                     </div>
-
                     <div className="pt-1 border-t border-zinc-800/60">
                       <div className="flex items-center gap-1.5 mb-2 px-1">
                         <Crown className="w-3 h-3 text-amber-400/60" />
@@ -95,11 +129,14 @@ export function AgentOverlay() {
                       <StarterPrompt />
                     </div>
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* === RUNNING STATE: Active Agent + Queue === */}
-                {phase === 'running' && (
-                  <>
+              {/* === RUNNING STATE — fixed header + scrollable list === */}
+              {phase === 'running' && (
+                <>
+                  {/* Fixed header: Active agent + progress bar */}
+                  <div className="shrink-0">
                     {activeAgent && (
                       <div className="p-3 pb-0">
                         <div className="cursor-pointer" onClick={() => handleAgentClick(activeAgent)}>
@@ -107,77 +144,86 @@ export function AgentOverlay() {
                         </div>
                       </div>
                     )}
-
                     <div className="px-3 py-2.5">
                       <PipelineProgress agents={pipelineAgents} />
                     </div>
+                  </div>
 
-                    <div className="px-3 pb-3">
+                  {/* Scrollable list */}
+                  <div className="max-h-[260px] overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent border-t border-zinc-800/40">
+                    <div className="px-3 py-2 pb-3">
                       <QueueTimeline agents={nonActiveAgents} onAgentClick={handleAgentClick} />
                     </div>
-                  </>
-                )}
-
-                {/* === COMPLETED STATE: Epic Conclusion === */}
-                {phase === 'completed' && (
-                  <div className="p-4 text-center space-y-3">
-                    <div className="relative mx-auto w-16 h-16">
-                      <div className="absolute inset-0 rounded-full bg-amber-400/20 animate-ping" />
-                      <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 via-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                        <Crown className="w-7 h-7 text-zinc-900" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-base font-bold bg-gradient-to-r from-amber-200 via-amber-400 to-orange-400 bg-clip-text text-transparent">
-                        Os Deuses Concluíram sua Obra
-                      </h3>
-                      <p className="text-[11px] text-zinc-500 mt-1">
-                        Todos os {pipelineAgents.length} agentes completaram suas tarefas divinas
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-center gap-4 text-xs">
-                      <div className="text-center">
-                        <div className="font-mono text-emerald-400 font-bold tabular-nums">{formatTime(totalTime)}</div>
-                        <div className="text-[9px] text-zinc-500 uppercase tracking-wider">Tempo Total</div>
-                      </div>
-                      <div className="w-px h-6 bg-zinc-800" />
-                      <div className="text-center">
-                        <div className="font-mono text-amber-400 font-bold tabular-nums">{pipelineAgents.length}</div>
-                        <div className="text-[9px] text-zinc-500 uppercase tracking-wider">Agentes</div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-6 gap-1">
-                      {pipelineAgents.map(agent => (
-                        <button
-                          key={agent.id}
-                          onClick={() => handleAgentClick(agent)}
-                          className="group cursor-pointer"
-                          title={`${agent.name} — ${agent.elapsedMs ? formatTime(agent.elapsedMs) : ''}`}
-                        >
-                          <AgentAvatar
-                            src={agent.image}
-                            name={agent.name}
-                            size="sm"
-                            status="completed"
-                            className="mx-auto group-hover:scale-110 transition-transform"
-                          />
-                        </button>
-                      ))}
-                    </div>
-
-                    <button
-                      onClick={resetPipeline}
-                      className="inline-flex items-center gap-1.5 text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors mt-1 cursor-pointer"
-                    >
-                      <RotateCcw className="w-3 h-3" />
-                      Nova Jornada
-                    </button>
                   </div>
-                )}
-              </div>
+                </>
+              )}
+
+              {/* === COMPLETED STATE === */}
+              {phase === 'completed' && (
+                <div className="p-4 text-center space-y-3">
+                  <div className="relative mx-auto w-16 h-16">
+                    <div className="absolute inset-0 rounded-full bg-amber-400/20 animate-ping" />
+                    <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-amber-400 via-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+                      <Crown className="w-7 h-7 text-zinc-900" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-base font-bold bg-gradient-to-r from-amber-200 via-amber-400 to-orange-400 bg-clip-text text-transparent">
+                      Os Deuses Concluíram sua Obra
+                    </h3>
+                    <p className="text-[11px] text-zinc-500 mt-1">
+                      Todos os {pipelineAgents.length} agentes completaram suas tarefas divinas
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-4 text-xs">
+                    <div className="text-center">
+                      <div className="font-mono text-emerald-400 font-bold tabular-nums">{formatTime(totalTime)}</div>
+                      <div className="text-[9px] text-zinc-500 uppercase tracking-wider">Tempo Total</div>
+                    </div>
+                    <div className="w-px h-6 bg-zinc-800" />
+                    <div className="text-center">
+                      <div className="font-mono text-amber-400 font-bold tabular-nums">{pipelineAgents.length}</div>
+                      <div className="text-[9px] text-zinc-500 uppercase tracking-wider">Agentes</div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-6 gap-1">
+                    {pipelineAgents.map(agent => (
+                      <button
+                        key={agent.id}
+                        onClick={() => handleAgentClick(agent)}
+                        className="group cursor-pointer"
+                        title={`${agent.name} — ${agent.elapsedMs ? formatTime(agent.elapsedMs) : ''}`}
+                      >
+                        <AgentAvatar
+                          src={agent.image}
+                          name={agent.name}
+                          size="sm"
+                          status="completed"
+                          className="mx-auto group-hover:scale-110 transition-transform"
+                        />
+                      </button>
+                    ))}
+                  </div>
+
+                  {reportContent ? (
+                    <button
+                      onClick={() => setShowReport(true)}
+                      className="inline-flex items-center gap-1.5 text-[11px] text-amber-400/80 hover:text-amber-300 transition-colors mt-1 cursor-pointer"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Ver Relatório Final
+                    </button>
+                  ) : (
+                    <div className="flex items-center justify-center gap-1.5 mt-1">
+                      <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                      <span className="text-[11px] text-zinc-500">Gerando relatório final...</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Total time footer — only during running */}
               {phase === 'running' && (

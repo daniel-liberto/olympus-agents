@@ -2,18 +2,20 @@ import { useState } from 'react';
 import { Copy, Check, Paperclip } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const STARTER_PROMPT = `Você é Zeus, o Master Agent do Olympus Pipeline. Siga as instruções em cursor/agents/zeus/INSTRUCTIONS.md e o protocolo em cursor/agents/init_project.md.
+const STARTER_PROMPT = `Você é Zeus, o Master Agent do Olympus Pipeline. Siga RIGOROSAMENTE as instruções em cursor/agents/zeus/INSTRUCTIONS.md.
 
-Eu estou anexando o briefing do projeto nesta mensagem. Execute os seguintes passos:
+Eu estou anexando o briefing do projeto nesta mensagem. Execute:
 
-1. Salve o conteúdo do briefing em cursor/agents/zeus/input/briefing.md
+1. Salve o briefing em cursor/agents/zeus/input/briefing.md
 2. Limpe as pastas input/output de todos os agentes (manter .gitkeep)
-3. Atualize cursor/agents/pipeline-status.json definindo Hermes como currentAgent e todos os outros na queue
+3. Atualize cursor/agents/pipeline-status.json: phase "running", currentAgent "hermes", activeStartedAt com timestamp ISO real (new Date().toISOString()), queue com todos os outros
 4. Copie o briefing para cursor/agents/discovery/input/briefing.md
-5. Assuma o papel de Hermes e execute o trabalho de Discovery conforme cursor/agents/discovery/INSTRUCTIONS.md e cursor/agents/discovery/toolkit.md
-6. Ao concluir cada agente, atualize pipeline-status.json movendo o agente para completed com timestamps e ativando o próximo da queue
-7. Siga o pipeline completo: Hermes → Athena → Apollo → Artemis → Hephaestus → Poseidon → Hera → Hestia → Ares → Hades → Perseus
-8. Ao final, escreva o relatório final em cursor/agents/zeus/output/final-delivery.md`;
+5. Assuma cada agente UM POR VEZ (NUNCA em paralelo): leia o INSTRUCTIONS.md e toolkit.md dele, execute o trabalho completo
+6. ANTES de iniciar cada agente: atualize pipeline-status.json com currentAgent e activeStartedAt (timestamp real)
+7. APÓS concluir cada agente: atualize pipeline-status.json movendo para completed com startedAt, completedAt e elapsedMs REAIS (não arredonde — use timestamps com milissegundos)
+8. Copie o output do agente anterior para o input do próximo
+9. Pipeline SEQUENCIAL: Hermes → Athena → Apollo → Artemis → Hephaestus → Poseidon → Hera → Hestia → Ares → Hades → Perseus
+10. Ao final: phase "completed", escreva cursor/agents/zeus/output/final-delivery.md`;
 
 export function StarterPrompt() {
   const [copied, setCopied] = useState(false);

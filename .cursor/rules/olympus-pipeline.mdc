@@ -29,8 +29,10 @@ This project uses a team of 12 AI agents (the Olympus team) to manage a complete
 | Hades | Semi-god | Mobile Testing | cursor/agents/mobile_tester/ |
 | Perseus | Semi-god | Desktop Testing | cursor/agents/desktop_tester/ |
 
-## Pipeline Flow
-**Phase 0:** Init (setup, Git, clean) → **Phase 1:** Discovery → Strategy → UI/UX (Desktop + Mobile parallel) → Refinement → Frontend → Responsive → Animations → QA → Testing (Mobile + Desktop parallel) → **Phase 2:** Zeus Final Review → **Phase 3:** Deploy
+## Pipeline Flow (STRICTLY SEQUENTIAL)
+**Phase 0:** Init (setup, Git, clean) → **Phase 1:** Discovery → Strategy → Desktop UI/UX → Mobile UI/UX → Refinement → Frontend → Responsive → Animations → QA → Mobile Testing → Desktop Testing → **Phase 2:** Zeus Final Review → **Phase 3:** Deploy
+
+**All agents run one at a time. No parallel execution.**
 
 ## Communication
 - Each agent reads from their `input/` folder and writes to their `output/` folder

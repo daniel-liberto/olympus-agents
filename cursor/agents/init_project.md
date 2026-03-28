@@ -147,7 +147,7 @@ Output: cursor/agents/ui_ux_desktop/output/
   └── status.json
 ```
 
-### Stage 4 — Mobile UI/UX (Artemis) ⚡ PARALELO COM APOLLO
+### Stage 4 — Mobile UI/UX (Artemis)
 
 ```
 Input:  cursor/agents/product_strategist/output/ → cursor/agents/ui_ux_mobile/input/
@@ -158,7 +158,7 @@ Output: cursor/agents/ui_ux_mobile/output/
   └── status.json
 ```
 
-> **Apollo e Artemis podem rodar em paralelo** — ambos recebem o output da Athena.
+> Apollo roda primeiro, depois Artemis — sequencialmente.
 
 ### Stage 5 — Visual Refinement (Hephaestus)
 
@@ -217,7 +217,7 @@ Output: cursor/agents/frontend_qa/output/
   └── status.json
 ```
 
-### Stage 10a — Mobile Testing (Hades) ⚡ PARALELO COM PERSEUS
+### Stage 10a — Mobile Testing (Hades)
 
 ```
 Input:  cursor/agents/frontend_qa/output/ → cursor/agents/mobile_tester/input/
@@ -227,7 +227,7 @@ Output: cursor/agents/mobile_tester/output/
   └── status.json
 ```
 
-### Stage 10b — Desktop Testing (Perseus) ⚡ PARALELO COM HADES
+### Stage 10b — Desktop Testing (Perseus)
 
 ```
 Input:  cursor/agents/frontend_qa/output/ → cursor/agents/desktop_tester/input/
@@ -237,7 +237,7 @@ Output: cursor/agents/desktop_tester/output/
   └── status.json
 ```
 
-> **Hades e Perseus rodam em paralelo** após Ares completar o QA.
+> Hades roda primeiro, depois Perseus — sequencialmente.
 
 ---
 

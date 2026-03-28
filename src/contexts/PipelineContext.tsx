@@ -14,7 +14,8 @@ interface CompletedEntry {
 }
 
 interface PipelineStatusFile {
-  currentAgent: string | string[] | null;
+  currentAgent: string | null;
+  activeStartedAt?: string | null;
   phase?: string;
   queue: string[];
   completed: Record<string, CompletedEntry>;
@@ -34,19 +35,16 @@ interface PipelineContextValue {
 const PipelineContext = createContext<PipelineContextValue | null>(null);
 
 function deriveAgents(status: PipelineStatusFile): AgentInfo[] {
-  const currentAgents = Array.isArray(status.currentAgent)
-    ? status.currentAgent
-    : status.currentAgent ? [status.currentAgent] : [];
-
   return PIPELINE_AGENTS.map(base => {
     if (base.id === 'zeus') return { ...base, status: 'idle' as AgentStatus };
 
-    if (currentAgents.includes(base.id)) {
-      const entry = status.completed[base.id];
+    if (status.currentAgent === base.id) {
       return {
         ...base,
         status: 'active' as AgentStatus,
-        startedAt: entry?.startedAt ? new Date(entry.startedAt).getTime() : Date.now(),
+        startedAt: status.activeStartedAt
+          ? new Date(status.activeStartedAt).getTime()
+          : Date.now(),
       };
     }
 
@@ -112,10 +110,7 @@ export function PipelineProvider({ children }: { children: ReactNode }) {
   const phase = derivePhase(status);
   const isRunning = phase === 'running';
 
-  const currentAgents = Array.isArray(status.currentAgent)
-    ? status.currentAgent
-    : status.currentAgent ? [status.currentAgent] : [];
-  const currentAgentId = currentAgents[0] || null;
+  const currentAgentId = status.currentAgent || null;
 
   const resetPipeline = useCallback(() => {
     setStatus(DEFAULT_STATUS);
