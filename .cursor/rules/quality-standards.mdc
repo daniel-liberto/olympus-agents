@@ -1,0 +1,225 @@
+---
+description: Mandatory quality standards for all Olympus pipeline agents — anti-bug rules, design patterns, and implementation requirements
+alwaysApply: true
+---
+
+# Olympus Quality Standards
+
+These rules are MANDATORY for every agent in the pipeline. They come from real production bugs found in testing. Every agent MUST follow them.
+
+## CRITICAL BUG PREVENTION
+
+### 1. Text Contrast — NEVER dark text on dark backgrounds
+
+- ALL text on dark backgrounds MUST be readable: `text-foreground`, `text-white`, `text-zinc-100`, `text-zinc-200`, `text-zinc-300`, `text-zinc-400` — NEVER `text-zinc-600`, `text-zinc-700`, `text-zinc-800` on dark cards/backgrounds
+- Labels and helper text: minimum `text-muted-foreground` (which resolves to a readable gray)
+- Test: if you can't read the text against its background, it's wrong
+
+### 2. Sidebar — MUST be h-screen, sticky, not page-height
+
+Desktop sidebar:
+```
+w-64 sticky left-0 top-0 h-screen bg-background border-r border-border flex flex-col
+```
+- `h-screen` NOT `h-full` — sidebar must fill the viewport, not the page content
+- `sticky` on desktop, `fixed` on mobile with overlay
+- `flex flex-col` with `flex-1 overflow-y-auto` for nav scroll and `flex-shrink-0` for header/footer
+- Navigation items go in the scrollable region, NOT as floating action buttons
+
+Mobile sidebar:
+```
+fixed left-0 top-0 z-50 w-64 h-screen bg-background border-r border-border flex flex-col transform -translate-x-full transition-transform
+```
+Plus dark overlay: `fixed inset-0 bg-black/50 z-40`
+
+### 3. Color Opacity Bug — NEVER stack opacity on custom HSL colors
+
+This is the #1 Tailwind bug:
+```
+❌ WRONG: bg-primary/60  (if --primary already has alpha in its HSL)
+❌ WRONG: bg-[hsl(var(--custom-color))]/50
+✅ RIGHT: bg-primary (use the color as-is)
+✅ RIGHT: bg-primary hover:bg-primary/90 (single opacity modifier, base has no alpha)
+```
+
+Rules:
+- CSS variables for colors MUST be defined as `H S% L%` WITHOUT alpha (e.g. `--primary: 20 100% 50%`)
+- Opacity modifiers like `/60` only work when the base HSL has NO built-in alpha
+- If `--border` uses alpha like `44 6% 51% / 0.2`, do NOT add another `/` modifier on top
+- When in doubt, use the semantic class directly: `bg-card`, `border-border`, `text-foreground`
+
+### 4. Button Colors — NEVER leave white/unstyled buttons
+
+- Primary actions: `bg-primary text-primary-foreground hover:bg-primary/90`
+- Secondary: `bg-secondary text-secondary-foreground hover:bg-secondary/80`
+- Destructive: `bg-destructive text-destructive-foreground`
+- Ghost: `hover:bg-accent hover:text-accent-foreground`
+- NEVER: bare `bg-white`, `text-black`, or unstyled buttons in a dark theme
+
+### 5. Layout Shell — proper flex structure
+
+```tsx
+// Root
+<div className="h-full w-full bg-background flex flex-col overflow-x-hidden">
+  <div className="flex-1 flex min-w-0 overflow-x-hidden">
+    {/* Sidebar (sticky h-screen) */}
+    <Sidebar />
+    {/* Main */}
+    <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+      <Header />
+      <main className="flex-1 overflow-y-auto p-6">
+        {content}
+      </main>
+    </div>
+  </div>
+</div>
+```
+
+- `html, body, #root` must all have `height: 100%`
+- `min-w-0` on flex children to prevent overflow
+- `overflow-x-hidden` to prevent horizontal scroll
+
+## DESIGN QUALITY STANDARDS
+
+### 6. CSS Variables — use semantic tokens, not raw Tailwind colors
+
+Define in index.css:
+```css
+.dark {
+  --background: 0 0% 5%;        /* near black */
+  --foreground: 0 0% 100%;      /* white */
+  --card: 0 0% 7%;              /* slightly lighter */
+  --card-foreground: 0 0% 100%;
+  --muted: 0 0% 10%;
+  --muted-foreground: 0 0% 60%;
+  --border: 0 0% 15%;           /* NO ALPHA — use plain HSL */
+  --input: 0 0% 12%;
+  --primary: 20 100% 50%;       /* orange/amber */
+  --primary-foreground: 0 0% 100%;
+}
+```
+
+Use in components:
+```
+bg-background, bg-card, bg-muted, bg-primary
+text-foreground, text-card-foreground, text-muted-foreground
+border-border, border-input
+```
+
+### 7. Tables — desktop table + mobile card list (MANDATORY pattern)
+
+Desktop (hidden on mobile):
+```tsx
+<div className="hidden lg:block">
+  <table className="w-full">
+    <thead>
+      <tr className="border-b border-border bg-card/50">
+        <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">Column</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="border-b border-border hover:bg-accent/20 transition-colors h-16 cursor-pointer">
+        <td className="py-2 px-4 text-sm text-foreground">Data</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+```
+
+Mobile (hidden on desktop):
+```tsx
+<div className="lg:hidden">
+  <div className="divide-y divide-border">
+    {items.map(item => (
+      <div className="p-4 hover:bg-accent/20 transition-colors cursor-pointer">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src={item.icon} className="w-8 h-8 rounded-full" />
+            <div>
+              <div className="text-foreground font-medium text-sm">{item.title}</div>
+              <div className="text-xs text-muted-foreground">{item.subtitle}</div>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-foreground text-sm font-medium">{item.value}</div>
+            <div className="text-xs text-muted-foreground">{item.meta}</div>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+```
+
+### 8. Modals — portal-based, proper mobile adaptation
+
+- Use `createPortal(content, document.body)` for all modals
+- Desktop: centered with `max-w-lg`, `rounded-2xl`
+- Mobile: bottom sheet with `rounded-t-2xl`, slide from bottom animation
+- ALWAYS lock body scroll when modal is open
+- ALWAYS have close button AND backdrop click to dismiss
+
+### 9. Currency/Asset Icons — use real images, not generic placeholders
+
+For crypto icons:
+- Use local SVGs: `/img/coins/bitcoin.svg`, `/img/coins/ethereum.svg`, `/img/coins/tether.svg` etc.
+- Or use CoinGecko API: `https://api.coingecko.com/api/v3/coins/{id}?localization=false` → `image.small`
+- Or use CryptoCompare: `https://cryptocompare.com/media/...`
+
+For country flags:
+- Use local SVGs from a flag pack (e.g. circle-flags)
+- Or use Flagpedia CDN: `https://flagcdn.com/w40/{country-code}.png`
+
+NEVER use a generic circle or Lucide icon as a crypto/currency symbol.
+
+### 10. Empty States — EVERY list/table must have one
+
+```tsx
+{items.length === 0 && (
+  <div className="flex flex-col items-center justify-center py-16 px-8">
+    <div className="w-16 h-16 bg-muted/20 rounded-full flex items-center justify-center mb-4">
+      <FileText className="w-8 h-8 text-muted-foreground" />
+    </div>
+    <h3 className="text-lg font-semibold text-foreground mb-2">Nenhum item encontrado</h3>
+    <p className="text-muted-foreground text-center max-w-sm">Descrição do que fazer.</p>
+  </div>
+)}
+```
+
+### 11. Navigation — sidebar items are NAVIGATION, not action buttons
+
+- Quick actions (deposit, convert, withdraw) go in the SIDEBAR as navigation items with their own pages, NOT as floating action buttons
+- Each sidebar item navigates to a FULL PAGE view
+- The sidebar organizes items by section: "Principal" (Home, Wallet), "Transações" (Deposit, Convert, Withdraw, Transfer), "Outros" (History, Settings, etc.)
+- Footer items: Support, Profile, Logout
+
+### 12. Screen Completeness Checklist
+
+Every feature screen MUST have:
+- [ ] Header with title and actions
+- [ ] Main form/content area
+- [ ] History/activity table below the main content (with desktop+mobile layouts)
+- [ ] Empty state for the history table
+- [ ] Loading state (skeleton or spinner)
+- [ ] Error state with retry
+- [ ] Status badges using semantic colors (green=success, yellow=pending, red=error/cancelled)
+- [ ] Real-looking mock data (dates, amounts, names — not "lorem ipsum")
+
+### 13. Form Quality
+
+- Labels ALWAYS visible (not only placeholder)
+- Validation messages below fields in `text-destructive` / `text-red-500`
+- Primary submit button uses `bg-primary text-primary-foreground`
+- Submit button shows loading state (spinner + disabled)
+- "Available balance" text when relevant: `text-muted-foreground`
+- Currency amount inputs: large font, right-aligned or centered, with currency symbol
+
+### 14. Success/Completion Screens
+
+After a major action (deposit, withdraw, convert):
+- Full-screen or large modal with success/error icon
+- Green circle with checkmark for success, red circle with X for error
+- Summary card with all transaction details
+- "Download Receipt" secondary button
+- "Back to [feature]" primary button
+- Animate in with `animate-in fade-in`

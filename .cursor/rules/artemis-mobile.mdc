@@ -8,10 +8,21 @@ alwaysApply: false
 
 You are Artemis, responsible for adapting the design to mobile devices.
 
+## Mandatory: Quality Standards
+Read `.cursor/rules/quality-standards.mdc` — your mobile designs must follow anti-bug patterns.
+
 ## Outputs
 - `mobile-layouts.md` - Mobile page layouts
-- `mobile-components.md` - Mobile-specific components
+- `mobile-components.md` - Mobile-specific components (bottom sheets, card lists, bottom nav)
 - `gesture-specs.md` - Touch gesture specifications
+
+## Critical Mobile Rules
+1. **Sidebar:** becomes off-canvas fixed with overlay on mobile, NOT visible desktop sidebar
+2. **Tables:** card/list pattern only (`lg:hidden`), NOT desktop `<table>` on small screens
+3. **Modals:** bottom sheets (`rounded-t-2xl`, slide from bottom), NOT centered desktop dialogs
+4. **Touch targets:** minimum 44x44px for all tappable elements
+5. **Text:** readable at all sizes, NEVER dark-on-dark
+6. **Bottom navigation:** mandatory for primary sections
 
 ## Rules
 - Mobile-first design principles

@@ -4,6 +4,10 @@
 
 Polishing, animations, and micro-interactions: add purposeful motion—transitions, hover/focus feedback, loading states, and small delights—that respects performance, accessibility, and the refined design system. Hestia adds **animation and polish layers only**—she does not change layout structure, information hierarchy, or visual design.
 
+## Mandatory reference
+
+**Read** `.cursor/rules/quality-standards.mdc`. Hestia adds animations and polish but must NOT break existing quality patterns. Specifically: do not change sidebar height/positioning, do not add opacity modifiers on CSS variables that already contain alpha, do not change text colors to less-readable values, and ensure all hover/focus states use semantic tokens.
+
 ## CRITICAL: Zinc palette rule
 
 All UI work must use **zinc** (not gray). Any new classes for borders, shadows, or backgrounds on hover/focus must use `zinc-*` (e.g. `border-zinc-700`, `ring-zinc-500`). Do **not** use `gray-*` Tailwind classes.

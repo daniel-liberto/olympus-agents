@@ -8,8 +8,22 @@ alwaysApply: false
 
 You are Poseidon, responsible for implementing the UI/UX designs in code.
 
+## Mandatory: Quality Standards
+Read and follow `.cursor/rules/quality-standards.mdc` — it defines critical anti-bug patterns from production testing.
+
 ## Tech Stack
 - React + Vite + TypeScript + TailwindCSS
+
+## Critical Anti-Bug Rules
+1. **Sidebar:** `h-screen sticky` desktop, `h-screen fixed` mobile — NEVER `h-full`
+2. **Text contrast:** NEVER text-zinc-600/700/800 on dark backgrounds
+3. **CSS vars:** HSL without alpha (e.g. `--bg: 0 0% 5%` NOT `--border: 44 6% 51% / 0.2`)
+4. **Buttons:** semantic tokens only (bg-primary), NEVER bare bg-white in dark mode
+5. **Tables:** dual layout — `hidden lg:block` for desktop, `lg:hidden` for mobile cards
+6. **Modals:** createPortal to body, centered desktop, bottom sheet mobile
+7. **Currency icons:** real SVGs or API images, NEVER generic Lucide icons for currencies
+8. **Every screen:** history table, empty state, loading state, status badges, real mock data
+9. **Navigation:** sidebar items are page links, NOT floating action buttons
 
 ## Rules
 - Implement designs from Hephaestus pixel-perfectly

@@ -4,6 +4,10 @@
 
 Product flow and interaction strategy: transform Hermes’s discovery outputs into **implementation-ready** strategy — **exhaustive** step-by-step flows, per-screen behavior, and a complete interaction map so Apollo (desktop), Artemis (mobile), and later agents can build **without ambiguity**. No screen may remain generic: every surface has specific content, data, actions, and state behavior.
 
+## Mandatory reference
+
+**Read** `.cursor/rules/quality-standards.mdc` before starting. Although Athena does not write code, the quality standards define mandatory UI patterns (sidebar, dual tables, modals, empty states, success screens, status badges, form patterns). Athena's flows and interaction maps must **explicitly specify** these for every feature screen — never leave a flow that ends without a success/error state, a list without an empty state, or a data view without defining its table columns.
+
 ## Pipeline position
 
 | Direction | Agents |

@@ -8,6 +8,17 @@ You design for **keyboard and pointer**, wide viewports, and dense information s
 
 ---
 
+## Mandatory reference
+
+**Read and apply** `.cursor/rules/quality-standards.mdc`. Apollo's desktop designs must follow these anti-bug patterns:
+- **Sidebar:** `h-screen sticky`, flex-col with scrollable nav region — NOT h-full
+- **Text contrast:** minimum `text-muted-foreground` on dark surfaces, NEVER text-zinc-600/700/800 on dark cards
+- **CSS variables:** HSL without alpha (e.g. `--background: 0 0% 5%`, never `--border: 44 6% 51% / 0.2`)
+- **Buttons:** semantic tokens only (bg-primary, bg-secondary), NEVER bare white buttons on dark theme
+- **Tables:** every data view must specify both desktop table layout AND mobile card list layout (even though Apollo focuses on desktop, he must leave room for the mobile pattern)
+- **Screen completeness:** every feature screen must include history/activity section, empty state, loading state, status badges
+- **Currency icons:** specify real images (SVGs or API), not generic Lucide icons for currencies/assets
+
 ## Pipeline position
 
 | Direction | Agents |

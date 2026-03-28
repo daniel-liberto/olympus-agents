@@ -1,128 +1,231 @@
-# User Flows — CryptoFolio
+# User Flows — Crypto Wallet Dashboard
 
-## Flow 1: Visualizar Portfólio (Core)
+## F-DASH-001: Visualizar Dashboard (Happy Path)
 
-**Ponto de entrada:** Abertura do app
-**Ponto de saída:** Usuário informado sobre seu portfólio
+**Actor**: Usuário Casual (P1)
+**Entry**: Abertura do app / navegação para Dashboard
+**Screen**: SCR-HOME
 
-```
-1. Usuário abre o app
-2. Dashboard carrega automaticamente
-3. Saldo total consolidado é exibido em destaque no topo
-4. Lista de moedas do portfólio é exibida abaixo
-   - Cada moeda mostra: ícone, nome, valor atual, variação %, quantidade
-5. Usuário pode rolar para ver todas as moedas
-6. [Opcional] Usuário usa campo de busca para filtrar moeda específica
-   6a. Digita nome/símbolo da moeda
-   6b. Lista filtra em tempo real
-```
-
-## Flow 2: Converter Moedas
-
-**Ponto de entrada:** Tap no item "Converter" na navegação ou atalho do dashboard
-**Ponto de saída:** Conversão confirmada com feedback visual
-
-```
-1. Usuário acessa tela de Conversão
-2. Seleciona moeda de ORIGEM (dropdown com moedas do portfólio)
-3. Seleciona moeda de DESTINO (dropdown com moedas disponíveis)
-4. Digita o VALOR a converter
-5. Sistema exibe em tempo real:
-   - Taxa de conversão
-   - Valor estimado a receber
-6. Usuário clica em "Converter"
-7. Modal de confirmação aparece com resumo:
-   - De: X BTC → Para: Y ETH
-   - Taxa aplicada
-   - Valor final
-8. Usuário confirma
-   → 8a. SUCESSO: Tela/modal de sucesso com opção de voltar ao dashboard
-   → 8b. ERRO: Mensagem de erro com opção de tentar novamente
-```
-
-## Flow 3: Realizar Saque
-
-**Ponto de entrada:** Tap no item "Sacar" na navegação ou atalho do dashboard
-**Ponto de saída:** Saque solicitado com confirmação
-
-```
-1. Usuário acessa tela de Saque
-2. Seleciona moeda para saque (dropdown)
-3. Sistema mostra saldo disponível daquela moeda
-4. Usuário digita o VALOR a sacar
-   → 4a. Se valor > saldo: exibir mensagem de saldo insuficiente
-5. Usuário informa dados de destino:
-   - Para crypto: endereço da carteira
-   - Para fiat: dados bancários (simplificado)
-6. Tela de revisão exibe resumo completo:
-   - Moeda, valor, destino, taxas estimadas
-7. Usuário confirma o saque
-   → 7a. SUCESSO: Tela de confirmação com status "Processando"
-   → 7b. ERRO: Mensagem com opção de corrigir dados
-```
-
-## Flow 4: Configurar Alerta de Preço
-
-**Ponto de entrada:** Tela de Alertas na navegação
-**Ponto de saída:** Alerta criado e ativo
-
-```
-1. Usuário acessa tela de Alertas
-2. Vê lista de alertas existentes (se houver)
-   - Cada alerta mostra: moeda, tipo (alta/baixa), limiar, status (ativo/inativo)
-3. Usuário toca em "Criar Alerta" (botão + )
-4. Seleciona a moeda
-5. Define o tipo: "Alertar quando SUBIR" ou "Alertar quando DESCER"
-6. Define o limiar em porcentagem (ex: 5%)
-7. Confirma a criação
-8. Alerta aparece na lista como "Ativo"
-```
-
-## Flow 5: Receber Notificação de Alerta
-
-**Ponto de entrada:** Variação de preço atinge o limiar configurado
-**Ponto de saída:** Usuário notificado e ciente
-
-```
-1. Sistema detecta que preço da moeda X variou além do limiar
-2. Toast notification aparece no topo da tela (qualquer tela)
-   - Mostra: ícone da moeda, "BTC subiu 5.2%!", ação rápida
+1. Usuário abre o app → redireciona para `/dashboard`
+2. Dashboard carrega e exibe:
+   - Saldo total consolidado em BRL no topo
+   - Lista de moedas com saldo, valor em fiat e variação 24h
+   - Destaques de variação significativa (badge ou seção especial)
 3. Usuário pode:
-   → 3a. Ignorar (toast desaparece em 5s)
-   → 3b. Tap no toast → vai para Dashboard com moeda destacada
-```
+   - **Buscar moeda**: digita no campo de busca → lista filtra em tempo real
+   - **Ver detalhes de uma moeda**: observa saldo, variação, valor
+   - **Ação rápida**: clica em Converter / Sacar / Depositar → navega para tela correspondente
+4. **Exit**: Navegação para qualquer tela via sidebar/bottom nav, ou ação rápida
 
-## Flow 6: Busca Rápida de Saldo
+### F-DASH-001-ERR: Dashboard — Error Paths
+- **Erro de carregamento**: Se dados mock falham → exibir estado de erro com botão "Tentar novamente"
+- **Empty state (SCR-EMPTY)**: Se usuário não tem moedas → exibir mensagem "Você ainda não tem moedas" com CTA "Fazer primeiro depósito" → navega para SCR-DEPOSIT
 
-**Ponto de entrada:** Dashboard
-**Ponto de saída:** Moeda encontrada
+---
 
-```
-1. Usuário está no Dashboard
-2. Toca no campo de busca (sempre visível no topo)
-3. Digita nome ou símbolo da moeda (ex: "BTC" ou "Bitcoin")
-4. Lista filtra em tempo real
-5. Moeda aparece com todas as informações de saldo
-6. [Opcional] Tap na moeda pode expandir detalhes
-```
+## F-CONV-001: Converter Moedas (Happy Path)
 
-## Resumo dos Fluxos
+**Actor**: Usuário Casual (P1)
+**Entry**: Dashboard (quick action "Converter") ou Sidebar/Nav
+**Screen**: SCR-CONVERT
 
-| # | Fluxo | Passos | Complexidade |
-|---|-------|--------|-------------|
-| 1 | Visualizar Portfólio | 6 | Baixa |
-| 2 | Converter Moedas | 8 | Média |
-| 3 | Realizar Saque | 7 | Média |
-| 4 | Configurar Alerta | 8 | Baixa |
-| 5 | Receber Notificação | 3 | Baixa |
-| 6 | Busca Rápida | 6 | Baixa |
+1. Usuário clica em "Converter" → navega para `/convert`
+2. Tela exibe:
+   - Seletor de moeda de origem (dropdown com busca)
+   - Campo de valor a converter
+   - Seletor de moeda de destino (dropdown com busca)
+   - Botão de swap (inverter par)
+   - Preview do valor convertido em tempo real
+   - Taxa de câmbio e fee estimado
+3. Usuário seleciona moeda de origem (ex: BTC)
+4. Usuário digita o valor (ex: 0.01 BTC)
+5. Usuário seleciona moeda de destino (ex: ETH)
+6. Preview atualiza automaticamente (ex: ~0.15 ETH)
+7. Usuário clica "Converter"
+8. **Modal de confirmação** aparece com resumo:
+   - De: 0.01 BTC
+   - Para: ~0.15 ETH
+   - Taxa: 0.1%
+   - Botões: "Confirmar" / "Cancelar"
+9. Usuário clica "Confirmar"
+10. Toast de sucesso: "Conversão realizada com sucesso!"
+11. **Exit**: Retorna ao Dashboard ou permanece para nova conversão
 
-## Pontos de Decisão Identificados
+### F-CONV-001-ERR: Conversão — Error Paths
+- **Saldo insuficiente**: Ao digitar valor > saldo disponível → campo fica vermelho + mensagem "Saldo insuficiente" → botão "Converter" desabilitado
+- **Mesma moeda**: Se origem = destino → mensagem "Selecione moedas diferentes" → botão desabilitado
+- **Valor zero/vazio**: Botão "Converter" permanece desabilitado
+- **Valor inválido**: Caracteres não numéricos → campo rejeita input
+- **Falha na conversão**: Toast de erro "Erro ao converter. Tente novamente."
 
-| Local | Decisão | Caminhos |
-|-------|---------|----------|
-| Conversão (passo 8) | Confirmação | Sucesso / Erro |
-| Saque (passo 4) | Validação de saldo | Suficiente / Insuficiente |
-| Saque (passo 7) | Confirmação | Sucesso / Erro |
-| Alerta (passo 5) | Tipo de alerta | Alta / Baixa |
-| Notificação (passo 3) | Ação do usuário | Ignorar / Interagir |
+---
+
+## F-SAQUE-001: Sacar Moedas (Happy Path)
+
+**Actor**: Usuário Casual (P1)
+**Entry**: Dashboard (quick action "Sacar") ou Sidebar/Nav
+**Screen**: SCR-WITHDRAW
+
+1. Usuário clica em "Sacar" → navega para `/withdraw`
+2. Tela exibe:
+   - Seletor de moeda
+   - Saldo disponível para a moeda selecionada
+   - Campo de valor a sacar
+   - Seletor de método: Crypto (endereço) / Fiat (dados bancários)
+   - Se crypto: campo de endereço de destino + seleção de rede
+   - Se fiat: campos de dados bancários (banco, agência, conta)
+   - Taxa estimada de saque
+3. Usuário seleciona moeda (ex: BTC)
+4. Seleciona método: Crypto
+5. Digita endereço de destino
+6. Seleciona rede (ex: Bitcoin Network)
+7. Digita valor (ex: 0.005 BTC)
+8. Tela mostra: taxa estimada, valor líquido a receber
+9. Clica "Sacar"
+10. **Modal de confirmação** com resumo completo
+11. Usuário clica "Confirmar"
+12. Toast de sucesso: "Saque solicitado com sucesso!"
+13. **Exit**: Retorna ao Dashboard; transação aparece em Histórico como "Pendente"
+
+### F-SAQUE-001-ERR: Saque — Error Paths
+- **Saldo insuficiente**: Valor > saldo → campo vermelho + mensagem + botão desabilitado
+- **Endereço inválido** (crypto): Formato incorreto → mensagem "Endereço inválido para esta rede"
+- **Valor mínimo**: Abaixo do mínimo permitido → mensagem "Valor mínimo: X"
+- **Campos obrigatórios vazios**: Botão "Sacar" permanece desabilitado
+- **Falha no saque**: Toast de erro "Erro ao processar saque. Tente novamente."
+
+---
+
+## F-DEP-001: Depositar Moedas (Happy Path)
+
+**Actor**: Usuário Casual (P1)
+**Entry**: Dashboard (quick action "Depositar") ou Sidebar/Nav
+**Screen**: SCR-DEPOSIT
+
+1. Usuário clica em "Depositar" → navega para `/deposit`
+2. Tela exibe:
+   - Seletor de moeda
+   - Seletor de rede
+3. Usuário seleciona moeda (ex: BTC) e rede (ex: Bitcoin Network)
+4. Tela exibe:
+   - Endereço de depósito
+   - QR Code do endereço
+   - Botão "Copiar endereço" (com feedback: "Copiado!")
+   - Aviso: "Envie apenas BTC nesta rede. Depósitos em outra moeda/rede serão perdidos."
+   - Informação de confirmações necessárias
+5. Usuário copia o endereço ou escaneia QR
+6. **Exit**: Usuário volta ao Dashboard; depósito aparecerá em Histórico quando confirmado
+
+### F-DEP-001-ERR: Depósito — Error Paths
+- **Nenhuma moeda selecionada**: Endereço não é exibido até seleção
+- **Erro ao gerar endereço**: Mensagem de erro + botão "Tentar novamente"
+
+---
+
+## F-ALERT-001: Configurar Alerta de Preço (Happy Path)
+
+**Actor**: Usuário Casual (P1)
+**Entry**: Navegação para Alertas ou Dashboard (ação na moeda)
+**Screen**: SCR-ALERTS → SCR-ALERT-CREATE
+
+1. Usuário navega para `/alerts`
+2. Tela exibe lista de alertas ativos (se houver) com toggle on/off e botão delete
+3. Usuário clica "Criar Alerta"
+4. Formulário (modal ou inline) exibe:
+   - Seletor de moeda
+   - Tipo de alerta: "Subiu mais de X%" / "Caiu mais de X%"
+   - Campo de porcentagem (ex: 5%)
+5. Usuário preenche: BTC, "Subiu mais de", 5%
+6. Clica "Salvar"
+7. Toast: "Alerta criado com sucesso!"
+8. Alerta aparece na lista de alertas ativos
+9. **Exit**: Permanece em Alertas ou navega para outro lugar
+
+### F-ALERT-001-TRIGGER: Alerta Disparado
+1. Simulação: variação de BTC atinge +5%
+2. Badge aparece no ícone de Alertas na navegação
+3. Banner ou toast no Dashboard: "BTC subiu 5.2% nas últimas 24h!"
+4. Usuário pode clicar para ir ao Dashboard/ver detalhes
+
+### F-ALERT-001-ERR: Alertas — Error Paths
+- **Alerta duplicado**: Mesmo moeda + direção + % → mensagem "Alerta similar já existe"
+- **Porcentagem inválida**: Valor <= 0 ou não numérico → campo vermelho + mensagem
+- **Sem moeda selecionada**: Botão "Salvar" desabilitado
+
+---
+
+## F-HIST-001: Visualizar Histórico (Happy Path)
+
+**Actor**: Usuário Casual (P1)
+**Entry**: Navegação para Histórico
+**Screen**: SCR-HISTORY
+
+1. Usuário navega para `/history`
+2. Tela exibe:
+   - Barra de filtros: tipo (Todos / Conversão / Saque / Depósito), período, moeda
+   - Lista de transações ordenada por data (mais recente primeiro)
+   - Cada item mostra: tipo, moeda(s), valor, data, status (badge colorido)
+3. Usuário pode filtrar por tipo, período ou moeda
+4. Usuário clica em uma transação → navega para `/history/:txId`
+
+### F-HIST-002: Detalhe da Transação
+**Screen**: SCR-TX-DETAIL
+
+1. Tela exibe todos os detalhes:
+   - Tipo de operação
+   - Data e hora
+   - Moeda(s) envolvida(s)
+   - Valor(es)
+   - Taxa cobrada
+   - Status (Pendente / Confirmada / Falhou)
+   - Transaction ID (para crypto)
+   - Endereço de destino (para saque)
+2. Botão "Voltar" → retorna ao Histórico
+
+### F-HIST-001-ERR: Histórico — Error/Edge Paths
+- **Sem transações**: Empty state → "Nenhuma transação encontrada" + CTA para fazer primeira operação
+- **Filtro sem resultados**: "Nenhuma transação para os filtros selecionados" + link "Limpar filtros"
+
+---
+
+## F-SETTINGS-001: Configurações (Happy Path)
+
+**Actor**: Usuário Casual (P1)
+**Entry**: Navegação para Configurações
+**Screen**: SCR-SETTINGS
+
+1. Usuário navega para `/settings`
+2. Tela exibe seções:
+   - **Moeda de exibição**: dropdown (BRL / USD / EUR) → salva automaticamente
+   - **Tema**: toggle Dark / Light → aplica imediatamente
+   - **Notificações**: toggles para alertas de preço
+   - **Conta**: nome e email (apenas exibição no MVP)
+3. Alterações são salvas automaticamente (localStorage)
+4. Toast: "Preferências salvas"
+5. **Exit**: Navegação para qualquer tela
+
+---
+
+## F-NAV-001: Navegação Global
+
+### Desktop
+1. Sidebar fixa à esquerda com logo, links de navegação e quick actions
+2. Link ativo destacado visualmente
+3. Conteúdo principal à direita da sidebar
+
+### Mobile
+1. Bottom navigation bar fixa com 4 itens: Home, Histórico, Alertas, Configurações
+2. FAB (Floating Action Button) para ações rápidas (Converter, Sacar, Depositar)
+3. Ao clicar FAB → menu expandido com 3 opções
+4. Toque em qualquer opção → navega para a tela correspondente
+
+---
+
+## Edge Cases Gerais
+
+- **EC-001 — Primeiro acesso (empty state)**: Usuário sem moedas → Dashboard exibe SCR-EMPTY com orientação para primeiro depósito
+- **EC-002 — URL inválida**: Qualquer rota não reconhecida → SCR-404 com link para Dashboard
+- **EC-003 — Dados não carregados**: Skeleton/loading state em todas as telas enquanto dados mockados "carregam"
+- **EC-004 — Ação em moeda com saldo zero**: Botão de saque/conversão desabilitado ou mensagem informativa
+- **EC-005 — Muitas moedas na lista**: Scroll suave + busca funcional para filtrar
+- **EC-006 — Notificação de alerta enquanto navega**: Toast não intrusivo que aparece sobre qualquer tela

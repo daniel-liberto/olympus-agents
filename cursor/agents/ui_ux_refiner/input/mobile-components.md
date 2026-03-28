@@ -1,239 +1,427 @@
-# CryptoFolio — Mobile Component Specifications
+# Crypto Wallet Dashboard — Mobile Component Specs
 
-**Project:** CryptoFolio (simplified crypto wallet).  
-**Platform:** Responsive web (React + Vite + TypeScript + TailwindCSS).  
-**Default theme:** Dark mode — clean, modern, high contrast for text/icons on charcoal/near-black surfaces.
-
-**Global rule:** Interactive targets **≥ 44×44px** (Apple HIG / WCAG 2.5.5 alignment). Where a control is visually smaller, expand the hit region with invisible padding (`min-h-11 min-w-11` etc.).
-
-This document mirrors the **desktop component set** with **mobile-first behavior**, **touch ergonomics**, and **adaptations** from desktop patterns.
+**Artemis · Mobile UI/UX**  
+**Stack:** shadcn/ui + **Vaul** (`Drawer`) + Lucide icons  
+**Theme:** Dark-first. **Zinc** neutrals, **amber** CTAs / primary, **emerald** success, **red** destructive / errors.  
+**Tokens:** Identical CSS variable names to Apollo’s `design-tokens.md` (`--background`, `--primary`, `--destructive`, `--success`, `--price-up`, `--price-down`, `--badge-*`, etc.).
 
 ---
 
-## 1. BalanceCard
+## Apollo → Artemis ID mapping
 
-**Desktop behavior (reference):** Often part of a multi-column dashboard; may sit beside charts or side panels.
+| Apollo ID | Mobile Variant ID | Notes |
+|-----------|------------------|-------|
+| CMP-Sidebar | **CMP-BottomTabBar-Mobile** | Bottom tabs replace sidebar |
+| CMP-PortfolioSummaryCard | **CMP-PortfolioStatCard-Mobile** | Horizontal scroll card |
+| CMP-CoinListTable | **CMP-CoinCardList-Mobile** | Cards replace table rows |
+| CMP-QuickSearchInput | **CMP-SearchBar-Mobile** | Top of coin list, collapsible |
+| CMP-QuickActionCard | **CMP-FABSpeedDial-Mobile** | FAB with 3 actions |
+| CMP-ConversionForm | **CMP-ConversionForm-Mobile** | Full screen; bottom sheet selectors |
+| CMP-CoinSelector | **CMP-CoinSelectorSheet-Mobile** | Vaul bottom sheet + search |
+| CMP-ConfirmConversionModal | **CMP-ConfirmConversionSheet-Mobile** | Bottom sheet confirm |
+| CMP-WithdrawalForm | **CMP-WithdrawalForm-Mobile** | Full screen |
+| CMP-ConfirmWithdrawalModal | **CMP-ConfirmWithdrawalSheet-Mobile** | Bottom sheet confirm |
+| CMP-DepositView | **CMP-DepositView-Mobile** | Full screen |
+| CMP-TransactionTable | **CMP-TransactionCardList-Mobile** | Card list |
+| CMP-TransactionFilters | **CMP-FilterChips-Mobile** | Horizontal chips + sheet |
+| CMP-TransactionDetail | **CMP-TransactionDetail-Mobile** | Stack push detail |
+| CMP-AlertList | **CMP-AlertCardList-Mobile** | Swipeable cards |
+| CMP-CreateAlertModal | **CMP-CreateAlertSheet-Mobile** | Bottom sheet |
+| CMP-SettingsForm | **CMP-SettingsList-Mobile** | List groups |
 
-### Mobile-specific behavior
-
-- **Width:** **100%** of content column (within horizontal padding); no side-by-side columns.
-- **Typography:** **Larger** primary balance (e.g. `text-3xl`–`text-4xl` on 375px+) for quick reading at arm’s length; secondary metrics `text-sm`–`text-base` with relaxed line-height.
-- **Touch:** Entire card can be **tap** to open detail/breakdown if product includes it; min height for tappable row areas **≥ 44px** if multiple tap targets inside (e.g., “Hide balance” eye icon **44×44px**).
-- **Spacing:** Internal padding **16–20px**; rounded corners **12–16px** consistent with coin cards.
-
-### Adaptations from desktop
-
-- Remove reliance on hover tooltips; use **tap** for info or inline **“i”** with sheet.
-- Optional **pull-to-refresh** on parent screen does not replace in-card refresh unless specified.
-
----
-
-## 2. CoinCard
-
-**Desktop behavior (reference):** Row or compact list; hover states; possibly inline expand.
-
-### Mobile-specific behavior
-
-- **Layout:** **Full-width** card; **vertical** rhythm: icon + symbol + name on left; price and 24h change on right **or** stacked on 320px if needed.
-- **Tap:** **Tap** toggles **expand/collapse** for holdings detail (avg cost, allocation) — **accordion** pattern; second tap collapses.
-- **Touch targets:** Chevron or expand control **≥ 44×44px**; row tap can map to same action for larger hit area.
-- **Spacing:** Min **padding-y** per row **12px**+ so lists feel touch-friendly.
-
-### Adaptations from desktop
-
-- No hover; use **pressed** state (`active:scale-[0.99]`) for feedback.
-- **Long-press** for quick actions (see gesture spec) — desktop equivalent might be right-click; not used on mobile web.
+**Mobile-only (flagged for Hephaestus):**  
+`CMP-BottomTabBar-Mobile`, `CMP-FABSpeedDial-Mobile`, `CMP-SwipeRow-Mobile`, `CMP-PullToRefresh-Mobile`, `CMP-FilterChipBar-Mobile`, `CMP-KeyboardAwareFooter-Mobile` (and any sub-parts labeled **MOBILE-ONLY** below).
 
 ---
 
-## 3. SearchBar
+## Global patterns
 
-**Desktop behavior (reference):** Inline in header or toolbar; may share row with filters.
+### Bottom sheet (Vaul `Drawer`)
 
-### Mobile-specific behavior
+- **Drag handle:** `DrawerHandle` pattern — centered 36×4px pill, `bg-muted-foreground/40`, top inset 12px from sheet content.
+- **Default snap:** `0.5` (~50% viewport) and `1` (full height) where content is tall; confirm-only sheets may use fixed **~40–45vh** min height + single snap `1`.
+- **Scroll:** Long content uses `ScrollArea` or native overflow inside `DrawerContent`; **header + handle stay fixed**; body scrolls.
+- **Backdrop:** `bg-background/80` with tap-outside to dismiss when `dismissible` (not on destructive confirm until user acts).
+- **Safe area:** `pb-safe` / `padding-bottom: env(safe-area-inset-bottom)` on sheet footers and sticky actions.
 
-- **Position:** **Sticky** below `BalanceCard` (and below app header offset) on Dashboard — remains visible while scrolling the coin list.
-- **Width:** **100%**; height **min 44px** (often **48px** input).
-- **Input:** `type="search"`, `enterkeyhint="search"`, clear button **≥ 44px** touch area.
-- **Focus:** On focus, optional **scroll-into-view** so keyboard does not obscure the bar (iOS/Android web).
+### Touch
 
-### Adaptations from desktop
+- **Tap:** Primary affordance; min touch target **44×44px** (use invisible hit slop on small icons).
+- **Swipe:** Use `CMP-SwipeRow-Mobile` for list rows that need actions; destructive actions require **second-step confirm** (sheet or inline undo window).
+- **Long-press:** Optional context preview (e.g. coin symbol copy); show `Tooltip`/`Toast` “Copiado” — keep rare to avoid discoverability issues.
 
-- Filters that were a **dropdown** beside search become **icon** opening **bottom sheet** or full-screen filter sheet.
+### Forms (mobile)
 
----
-
-## 4. CoinSelector
-
-**Desktop behavior (reference):** Dropdown / combobox with typeahead.
-
-### Mobile-specific behavior
-
-- **Pattern:** **Bottom sheet** (e.g., Vaul Drawer) instead of floating dropdown.
-- **Sheet contents:** Search at top of sheet; **virtualized** list if many assets; each row **min-height 48px**.
-- **Selection:** Tap row selects and **dismisses** sheet; optional “Cancel” as text button or swipe-down (see gesture spec).
-- **Accessibility:** Focus trap in sheet; return focus to trigger on close.
-
-### Adaptations from desktop
-
-- Replace **hover highlight** with **active** row background.
-- **Keyboard:** When sheet opens from amount field, maintain logical focus order.
+- **Sticky submit:** `CMP-KeyboardAwareFooter-Mobile` wraps primary CTA; stays above keyboard / home indicator.
+- **inputmode:** Amount fields `decimal`; OTP/pin if ever added `numeric`; phone `tel`; default text for names.
+- **Autofocus:** First invalid field on error; otherwise first editable field on screen open (one focus per navigation).
 
 ---
 
-## 5. AmountInput
+## CMP-BottomTabBar-Mobile — **MOBILE-ONLY**
 
-**Desktop behavior (reference):** Standard input with optional steppers.
+| | |
+|--|--|
+| **Component ID** | `CMP-BottomTabBar-Mobile` |
+| **Screen IDs** | Global: visible on `SCR-HOME`, `SCR-HISTORY`, `SCR-ALERTS`, `SCR-SETTINGS` (hidden on full-screen flows `SCR-CONVERT`, `SCR-WITHDRAW`, `SCR-DEPOSIT`, `SCR-TX-DETAIL`, `SCR-ALERT-CREATE`, `SCR-404` unless product says always-on). |
+| **shadcn / parts** | Custom bar using `Button` (ghost, `size="icon"` + label stack) or tabs primitive; Lucide: `Home`, `History`, `Bell`, `Settings`. **Badge** on Alerts tab. **Separator** optional top hairline. |
 
-### Mobile-specific behavior
+**States**
 
-- **Touch target:** Input field **min-height 48px**; full width in forms.
-- **Keyboard:** `inputmode="decimal"` (or `numeric` per locale rules) to trigger **numeric** keyboard; `pattern` and `autocomplete="off"` as appropriate.
-- **Affordances:** Large **+ / −** optional **≥ 44×44px** if product includes quick increment; otherwise avoid clutter on 320px.
-- **Labels/errors:** Error text below; **don’t** rely on hover for error tooltips.
+| State | Behavior |
+|-------|----------|
+| Default | Active tab: `text-primary` + small amber indicator or filled icon; inactive: `text-muted-foreground`. |
+| Loading | N/A (chrome only); parent may dim with overlay. |
+| Empty | N/A. |
+| Error | Optional dot on tab if sync fails (product). |
+| Disabled | Rare; entire bar disabled only if app offline shell. |
 
-### Adaptations from desktop
+**Touch:** Tap switches route; double-tap Home optional scroll-to-top (nice-to-have).
 
-- Desktop **spinbuttons** become **optional**; prefer **MAX** chip button with **44px** height next to field when used.
-
----
-
-## 6. StepIndicator
-
-**Desktop behavior (reference):** Horizontal steps with labels, may fit in wide header.
-
-### Mobile-specific behavior
-
-- **Placement:** **Horizontal** row at **top** of withdraw flow content (below app header).
-- **Style:** **Dots** or **compact numbered circles** with **short** labels (`text-xs`); current step **filled** / **bold**.
-- **Touch:** If steps are tappable (discouraged for strict wizards), each hit **≥ 44px**; prefer **non-interactive** indicator on mobile to avoid mis-taps.
-- **Spacing:** Horizontal **scroll** if more than 3–4 steps on 320px.
-
-### Adaptations from desktop
-
-- Long step names **truncated**; full titles only in step body.
+**Safe area:** `padding-bottom: max(12px, env(safe-area-inset-bottom))`; background `bg-card/95` + `border-t border-border` backdrop blur optional.
 
 ---
 
-## 7. AlertCard
+## CMP-FABSpeedDial-Mobile — **MOBILE-ONLY**
 
-**Desktop behavior (reference):** Row with toggle; delete via button or context menu.
+| | |
+|--|--|
+| **Component ID** | `CMP-FABSpeedDial-Mobile` |
+| **Screen IDs** | `SCR-HOME` (primary); may appear on other list screens if spec allows. |
+| **shadcn / parts** | `Button` (primary, circular, `size="lg"`); Lucide main: `Plus` or `Zap`; actions: `ArrowLeftRight` (Convert), `Banknote`/`ArrowUpFromLine` (Withdraw), `ArrowDownToLine` (Deposit). **Backdrop:** fixed inset-0 `bg-background/60` when open. |
 
-### Mobile-specific behavior
+**States:** Default / open (expanded). Loading: spinner on FAB during navigation. Empty/Error/Disabled: hide or disable with tooltip when no network.
 
-- **Layout:** **Full width**; primary info (pair, threshold) left; **toggle** right.
-- **Toggle:** **Min height 44px** for interactive row; switch track **≥ 44×24** with extended touch padding **vertically** to meet **44px** row height.
-- **Delete:** **Swipe left** reveals **Delete**; reveal width **≥ 72px**; button **min-height 44px** full row.
-- **Tap:** Tap card (non-toggle area) opens **edit** if applicable.
+**Touch:** Tap main toggles expand; tap action navigates + closes; tap backdrop closes. **Long-press:** not required.
 
-### Adaptations from desktop
-
-- **Context menu** / right-click **replaced** by swipe and/or overflow **⋯** menu (**44×44px**).
-
----
-
-## 8. Modal
-
-**Desktop behavior (reference):** Centered dialog for confirmations and forms.
-
-### Mobile-specific behavior
-
-- **Default:** **Bottom sheet** for most **non-destructive** forms and pickers — **rounded top** (`rounded-t-2xl`), **drag handle** visible.
-- **Destructive / critical:** **Centered modal** still allowed (narrow width, `max-w-sm`, padding safe areas).
-- **Actions:** Primary/secondary **stacked** or **side-by-side** if both **≥ 44px** height; primary **full width** on narrow screens.
-- **Backdrop:** Tap to dismiss only if non-destructive; else require explicit cancel.
-
-### Adaptations from desktop
-
-- **Large desktop dialogs** become **scrollable sheet body** with **sticky** footer for actions.
+**Position:** Above tab bar + safe area; `bottom: calc(env(safe-area-inset-bottom) + 80px)` typical.
 
 ---
 
-## 9. Toast
+## CMP-PortfolioStatCard-Mobile
 
-**Desktop behavior (reference):** Corner notification, sometimes narrow.
+| | |
+|--|--|
+| **Component ID** | `CMP-PortfolioStatCard-Mobile` |
+| **Screen IDs** | `SCR-HOME` |
+| **shadcn / parts** | `Card` (compact), `Skeleton` for loading; optional `Badge` for “24h”; Lucide `TrendingUp`/`TrendingDown` tinted `text-emerald-500` / `text-red-500` via `--price-up` / `--price-down`. Horizontal scroll if multiple stat chips in carousel. |
 
-### Mobile-specific behavior
+**States**
 
-- **Position:** **Top** of screen **below** status bar / notch: `top: env(safe-area-inset-top)` + **8px**.
-- **Width:** **Full width** minus **16px** horizontal margin (or edge-to-edge with inner padding).
-- **Duration:** Auto-dismiss **3–5s**; **swipe up** optional dismiss.
-- **Stacking:** New toasts push down or replace; avoid covering fixed CTAs — prefer **below header** or map to **non-blocking** banner above content.
+| State | UI |
+|-------|-----|
+| Default | Large fiat total (BRL), secondary line “24h Δ” or last updated. |
+| Loading | `Skeleton` h-8 + h-4; card height fixed to prevent jump. |
+| Empty | Show “—” + CTA line to Deposit (links `SCR-DEPOSIT`). |
+| Error | Inline `Alert` variant destructive + **Retry** `Button` outline. |
+| Disabled | N/A (read-only). |
 
-### Adaptations from desktop
+**Touch:** Tap card optional → expand breakdown sheet (if in scope); else no-op.
 
-- **No reliance** on hover to expand; action button in toast **min 44px** height.
-
----
-
-## 10. Button
-
-**Desktop behavior (reference):** Varied sizes; inline buttons in tables.
-
-### Mobile-specific behavior
-
-- **Min-height:** **48px** for primary/secondary in forms and fixed footers.
-- **Width:** **Full width** for **primary** actions on **Convert**, **Withdraw**, and auth-style flows; secondary as outline full width below or **inline** only if both meet **44px** min height.
-- **States:** `active:` feedback; `disabled:` clear contrast in dark theme.
-
-### Adaptations from desktop
-
-- **Icon-only** buttons in toolbars must still be **44×44px**.
+**Card row content:** Line 1: label “Saldo total”; Line 2: **amount** `tabular-nums`; trailing: refresh `Button` ghost.
 
 ---
 
-## 11. Toggle (Switch)
+## CMP-SearchBar-Mobile
 
-**Desktop behavior (reference):** Compact switch in settings rows.
+| | |
+|--|--|
+| **Component ID** | `CMP-SearchBar-Mobile` |
+| **Screen IDs** | `SCR-HOME` (above coin list) |
+| **shadcn / parts** | `Input` + left `Search` icon; optional `Button` collapse to icon-only; `Badge` for filter count if combined with filters (usually N/A on home). |
 
-### Mobile-specific behavior
+**States:** Default; **Loading** N/A; **Empty** placeholder “Buscar moeda…”; **Error** inline if search API fails; **Disabled** when offline.
 
-- **Visual track:** **≥ 44×24px**; **hit slop** expands to **≥ 44×44px** vertically within row.
-- **Row height:** Settings rows **min 48–52px** so label + switch align comfortably.
+**Touch:** Tap focuses input (keyboard); clear `X` tap. **Long-press:** paste from clipboard (optional).
 
-### Adaptations from desktop
-
-- Clicking **label** toggles switch (native `<label>` for); same on mobile.
-
----
-
-## 12. BottomNavBar
-
-**Desktop behavior (reference):** Sidebar or top nav — not used on mobile.
-
-### Mobile-specific behavior
-
-- **Items:** **4** — **Dashboard**, **Convert**, **Withdraw**, **Alerts** — **icon + label** (labels may wrap or truncate on 320px).
-- **Active state:** Filled icon + **high-contrast** color; inactive muted but **WCAG-compliant** against background.
-- **Height:** ~**56px** content + **safe-area** padding.
-- **Touch:** Each tab **flex-1** with **centered** hit target **full cell** (ensures **≥ 44px**).
-- **Settings:** **Not** in nav — access via **header gear** only.
-
-### Adaptations from desktop
-
-- **Route highlighting** maps to tab; `/settings` shows **no** active tab or optional neutral state.
+**Keyboard:** `inputmode="text"`, `autoComplete="off"`, `autoCorrect="false"`; collapse on scroll optional.
 
 ---
 
-## Cross-component notes
+## CMP-CoinCardList-Mobile
 
-| Topic | Mobile rule |
-|--------|-------------|
-| **Focus** | Visible focus rings for keyboard/Switch Control users |
-| **Motion** | Prefer reduced-motion respect (`prefers-reduced-motion`) |
-| **Haptics** | Web has limited haptics; use visual feedback instead |
-| **Icons** | Lucide at **24px** default in nav; **20–24px** in rows |
+| | |
+|--|--|
+| **Component ID** | `CMP-CoinCardList-Mobile` |
+| **Screen IDs** | `SCR-HOME` |
+| **shadcn / parts** | `Card` per coin; `Avatar`/icon; `Badge` for network tags if any; **Wrapped in** `CMP-PullToRefresh-Mobile` + optional `CMP-SwipeRow-Mobile` for quick actions if product adds them. |
+
+**States**
+
+| State | UI |
+|-------|-----|
+| Default | List of `CoinCard` rows. |
+| Loading | **Skeleton** cards ×6–8. |
+| Empty | Empty state illustration + “Depositar” CTA. |
+| Error | `Alert` + Retry; list region only. |
+| Disabled | Greyed with banner “Somente leitura”. |
+
+**Touch:** Tap row → `SCR-CONVERT` with coin prefilled or detail (per product). **Swipe:** if enabled via `CMP-SwipeRow-Mobile`.
+
+**Card row lines:** Line 1: **Symbol** + full name truncated; Line 2: balance crypto `tabular-nums`; Line 3: fiat value + **24h change** (emerald/red). **Trailing:** chevron `ChevronRight`. **Badge:** e.g. “ERC-20” only if shown in data.
 
 ---
 
-## Summary: Desktop → Mobile mapping
+## CMP-ConversionForm-Mobile
 
-| Component | Desktop | Mobile |
-|-----------|---------|--------|
-| Selectors | Dropdown / popover | Bottom sheet |
-| Modals | Center dialog | Sheet first; centered for critical |
-| Navigation | Sidebar / top | Bottom nav (4) + Settings in header |
-| Tables | Wide grids | Cards + full-width rows |
-| Hover | Tooltips, menus | Tap, long-press, swipe |
+| | |
+|--|--|
+| **Component ID** | `CMP-ConversionForm-Mobile` |
+| **Screen IDs** | `SCR-CONVERT` |
+| **shadcn / parts** | `Card`, `Label`, `Input`, `Button`, `Separator`; coin pickers open `CMP-CoinSelectorSheet-Mobile`. Footer: `CMP-KeyboardAwareFooter-Mobile` with primary **Review** / **Convert**. |
 
-All listed components satisfy **minimum 44px** touch targets on CryptoFolio mobile.
+**States:** Default; Loading skeleton on rates; Empty fields; Error inline + toast; Disabled when submitting (`Button` loading).
+
+**Touch:** Tap field opens sheet selectors; no swipe on form body.
+
+**Forms detail:** Amount `inputmode="decimal"`; **autofocus** amount after both coins selected; sticky submit **Review**; keyboard pushes footer via `CMP-KeyboardAwareFooter-Mobile` (visualViewport).
+
+**Bottom sheets:** Selectors use `CMP-CoinSelectorSheet-Mobile` (below).
+
+---
+
+## CMP-CoinSelectorSheet-Mobile
+
+| | |
+|--|--|
+| **Component ID** | `CMP-CoinSelectorSheet-Mobile` |
+| **Screen IDs** | `SCR-CONVERT`, `SCR-WITHDRAW`, `SCR-DEPOSIT` (network/coin pickers) |
+| **shadcn / parts** | Vaul `Drawer` (`DrawerContent`, `DrawerHeader`, `DrawerTitle`), `Input` search, `ScrollArea`, `Button` row per coin, Lucide check. |
+
+**States:** Default list; Loading skeleton rows; Empty search “Nenhuma moeda”; Error banner; Disabled row if coin unavailable.
+
+**Touch:** Tap row selects + closes; drag handle to dismiss.
+
+**Bottom sheet:** Snaps `0.85` and `1`; height min **50vh**; scroll inside list; drag handle yes.
+
+---
+
+## CMP-ConfirmConversionSheet-Mobile
+
+| | |
+|--|--|
+| **Component ID** | `CMP-ConfirmConversionSheet-Mobile` |
+| **Screen IDs** | `SCR-CONVERT` (step 2) |
+| **shadcn / parts** | `Drawer`, `Separator`, `Button` primary/destructive outline for Cancel; summary `Card` inside. |
+
+**States:** Default summary; Loading on confirm; Error toast + sheet open; Disabled buttons while submitting.
+
+**Touch:** Tap Confirm; backdrop tap = cancel if allowed.
+
+**Bottom sheet:** Fixed **~45vh** or snap `0.4` + `0.75`; short content centered; handle + scroll if fees list long.
+
+---
+
+## CMP-WithdrawalForm-Mobile
+
+| | |
+|--|--|
+| **Component ID** | `CMP-WithdrawalForm-Mobile` |
+| **Screen IDs** | `SCR-WITHDRAW` |
+| **shadcn / parts** | `Select`/`Drawer` for coin; `Input` amount/address/bank fields; `RadioGroup` method; `CMP-KeyboardAwareFooter-Mobile`. |
+
+**States:** Same pattern as convert; field-level errors.
+
+**Forms:** Amount `decimal`; bank digits `numeric`; address default text with `autocapitalize="none"`; **autofocus** first empty required.
+
+**Bottom sheets:** Coin = `CMP-CoinSelectorSheet-Mobile`; network/method = smaller drawer snap `0.5`.
+
+---
+
+## CMP-ConfirmWithdrawalSheet-Mobile
+
+| | |
+|--|--|
+| **Component ID** | `CMP-ConfirmWithdrawalSheet-Mobile` |
+| **Screen IDs** | `SCR-WITHDRAW` |
+| **shadcn / parts** | `Drawer` + summary rows + `Button` **Confirmar saque**. |
+
+**States:** Default / loading / error / disabled as confirm conversion.
+
+**Bottom sheet:** Same as `CMP-ConfirmConversionSheet-Mobile`; emphasize **destination** and **fee** lines.
+
+---
+
+## CMP-DepositView-Mobile
+
+| | |
+|--|--|
+| **Component ID** | `CMP-DepositView-Mobile` |
+| **Screen IDs** | `SCR-DEPOSIT` |
+| **shadcn / parts** | `Card`, QR placeholder (or library), `Button` copy, `Tabs` if multi-network; selector `CMP-CoinSelectorSheet-Mobile`. |
+
+**States:** Default; Loading address/QR; Empty coin; Error fetch; Disabled copy briefly after tap.
+
+**Touch:** Tap copy; tap QR optional fullscreen zoom (nice-to-have).
+
+**Forms:** Read-only address `Input` selectable; no keyboard submit.
+
+---
+
+## CMP-TransactionCardList-Mobile
+
+| | |
+|--|--|
+| **Component ID** | `CMP-TransactionCardList-Mobile` |
+| **Screen IDs** | `SCR-HISTORY` |
+| **shadcn / parts** | `Card` rows; `Badge` status (`--badge-pending`, `--badge-confirmed`, `--badge-failed`); Lucide direction icons; `CMP-PullToRefresh-Mobile`; `CMP-FilterChips-Mobile` above. |
+
+**States:** Default; Loading skeleton; Empty “Nenhuma transação”; Error + Retry; Disabled N/A.
+
+**Touch:** Tap → `SCR-TX-DETAIL`. **Swipe:** optional archive (if product).
+
+**Card lines:** Line 1: type + coin; Line 2: amount `tabular-nums` + fiat; Line 3: date/time relative. **Trailing:** status **Badge** + chevron.
+
+---
+
+## CMP-FilterChips-Mobile
+
+| | |
+|--|--|
+| **Component ID** | `CMP-FilterChips-Mobile` |
+| **Screen IDs** | `SCR-HISTORY` |
+| **shadcn / parts** | Composes **`CMP-FilterChipBar-Mobile`**; additional Vaul `Drawer` for full filter panel: `Select`, `Calendar`/`Popover` date range, `Button` Apply/Reset. |
+
+**States:** Default (chips reflect filters); Loading while applying; Empty filters “Todas”; Error toast; Disabled during fetch.
+
+**Touch:** Chip tap toggles or opens sheet; **long-press** chip optional “clear this filter”.
+
+**Bottom sheet (filters):** Snaps `0.75`/`1`; scroll form; handle; **Apply** sticky in `CMP-KeyboardAwareFooter-Mobile` if inputs focus.
+
+---
+
+## CMP-TransactionDetail-Mobile
+
+| | |
+|--|--|
+| **Component ID** | `CMP-TransactionDetail-Mobile` |
+| **Screen IDs** | `SCR-TX-DETAIL` |
+| **shadcn / parts** | `Card` sections, `Separator`, `Badge`, `Button` (explorer link mock), **Back** in header (`Button` ghost + `ArrowLeft`). |
+
+**States:** Default; Loading skeleton page; Empty invalid id → `SCR-404`; Error fetch; Disabled actions none.
+
+**Touch:** Back navigates stack; **no bottom sheet** unless “raw JSON” debug.
+
+**Navigation:** Stack push from History; preserve scroll on back.
+
+---
+
+## CMP-AlertCardList-Mobile
+
+| | |
+|--|--|
+| **Component ID** | `CMP-AlertCardList-Mobile` |
+| **Screen IDs** | `SCR-ALERTS` |
+| **shadcn / parts** | Each row `CMP-SwipeRow-Mobile`; `Card` content; `Switch` for active; `Badge` coin. |
+
+**States:** Default; Loading; Empty “Nenhum alerta” + CTA create; Error; Disabled global.
+
+**Touch:** Toggle tap; swipe delete/toggle per `CMP-SwipeRow-Mobile`; tap body → edit if product.
+
+**Card lines:** Line 1: coin + condition; Line 2: threshold; **Trailing:** `Switch` or chevron.
+
+---
+
+## CMP-CreateAlertSheet-Mobile
+
+| | |
+|--|--|
+| **Component ID** | `CMP-CreateAlertSheet-Mobile` |
+| **Screen IDs** | `SCR-ALERT-CREATE` or modal route over `SCR-ALERTS` |
+| **shadcn / parts** | `Drawer`, `Label`, `Input`, `Select`, `Button`, `CMP-KeyboardAwareFooter-Mobile`. |
+
+**States:** Default; Loading submit; validation Empty/Error; Disabled on submit.
+
+**Touch:** Drag handle; fields standard.
+
+**Bottom sheet:** Snap `0.9`/`1`; scroll form; sticky **Criar alerta**.
+
+**Forms:** Price `decimal`; **autofocus** first field; keyboard footer.
+
+---
+
+## CMP-SettingsList-Mobile
+
+| | |
+|--|--|
+| **Component ID** | `CMP-SettingsList-Mobile` |
+| **Screen IDs** | `SCR-SETTINGS` |
+| **shadcn / parts** | `Separator` section headers; rows as `Button` variant ghost justify-between; `Select` for fiat; `Switch` theme/notifications; Lucide `ChevronRight` on drill-ins. |
+
+**States:** Default; Loading skeleton list; Empty N/A; Error banner top; Disabled while saving row.
+
+**Touch:** Tap row; switch toggle; **long-press** row optional “reset default”.
+
+**Forms:** Inline `Select` triggers native picker or sheet; no global keyboard unless text field.
+
+---
+
+## CMP-SwipeRow-Mobile — **MOBILE-ONLY**
+
+| | |
+|--|--|
+| **Component ID** | `CMP-SwipeRow-Mobile` |
+| **Screen IDs** | `SCR-ALERTS` (alert rows); optionally `SCR-HISTORY` if swipe actions enabled. |
+| **shadcn / parts** | Pattern built with `@radix-ui/react-*` or custom motion; background layers: **left** red “Excluir”, **right** amber “Pausar/Ativar”; foreground `Card`. |
+
+**Behavior:** **Left swipe** reveals **delete** (red, `destructive`); **right swipe** reveals **toggle** (amber, `primary` / warning). Destructive completes only after **confirm** `AlertDialog` or undo toast 5s.
+
+**States:** Idle / dragging / revealed / confirming.
+
+**Touch:** Swipe thresholds ~56px reveal; tap action or confirm.
+
+---
+
+## CMP-PullToRefresh-Mobile — **MOBILE-ONLY**
+
+| | |
+|--|--|
+| **Component ID** | `CMP-PullToRefresh-Mobile` |
+| **Screen IDs** | `SCR-HOME`, `SCR-HISTORY`, `SCR-ALERTS` |
+| **shadcn / parts** | Container with scroll listener; `Loader2` Lucide spinner; optional `Progress` ring. |
+
+**Behavior:** Pull **> 60px** threshold triggers refresh; releasing runs async; spinner until settle; error → toast.
+
+**States:** Idle / pulling / refreshing / error (toast).
+
+---
+
+## CMP-FilterChipBar-Mobile — **MOBILE-ONLY**
+
+| | |
+|--|--|
+| **Component ID** | `CMP-FilterChipBar-Mobile` |
+| **Screen IDs** | `SCR-HISTORY` (child of `CMP-FilterChips-Mobile`) |
+| **shadcn / parts** | `ScrollArea` horizontal; `Toggle` or `Badge` + `Button` size `sm` pill outline. |
+
+**Touch:** Tap chip toggles quick filter; tap **“Filtros”** opens full sheet from parent.
+
+**States:** Default; disabled while loading list.
+
+---
+
+## CMP-KeyboardAwareFooter-Mobile — **MOBILE-ONLY**
+
+| | |
+|--|--|
+| **Component ID** | `CMP-KeyboardAwareFooter-Mobile` |
+| **Screen IDs** | `SCR-CONVERT`, `SCR-WITHDRAW`, `SCR-ALERT-CREATE`, filter sheet with inputs |
+| **shadcn / parts** | Fixed `div` with `border-t border-border bg-card/95`; contains primary/secondary `Button`s; listens `visualViewport` resize + `env(safe-area-inset-bottom)`. |
+
+**Behavior:** On keyboard open, translateY up by `keyboardHeight - safeArea` (cap to reasonable max); on close, animate back. Submit bar stays **one column**, full width, min height 56px + safe area.
+
+**States:** Default / keyboard-visible / submitting (`Button` loading).
+
+---
+
+## Coordination notes for Hephaestus
+
+1. **Tokens:** Use Apollo token file names and CSS variables verbatim; no mobile-specific token aliases unless later approved—mobile-only components still read `--primary`, `--card`, `--border`, etc.
+2. **MOBILE-ONLY:** Components marked **MOBILE-ONLY** must not block desktop bundles if code-split; export from a `mobile/` barrel or feature flag as needed.
+3. **Parity:** Desktop **semantics** (labels, validation rules, status badges, route names) stay aligned with Apollo component specs; only **layout and interaction** differ (tabs vs sidebar, sheets vs modal dialogs).
+4. **Vaul:** Use `Drawer` for all former “Modal” confirmations on mobile to match native expectations; keep **`modal={true}`** for true blockers (confirm withdraw) so focus trap is correct.
+5. **Accessibility:** Sheets must expose **title** (`DrawerTitle`) to SR; FAB must have **`aria-expanded`**; swipe rows need **accessible names** for actions (not swipe-only).
+
+---
+
+*End of mobile component specs — Crypto Wallet Dashboard*

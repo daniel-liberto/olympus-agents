@@ -1,160 +1,221 @@
-# CryptoFolio — Touch & Gesture Specifications (Mobile Web)
+# Gesture Specifications — Crypto Wallet Dashboard (Mobile)
 
-**App:** CryptoFolio — simplified crypto wallet (React + Vite + TypeScript + TailwindCSS).  
-**Environment:** Mobile browsers (iOS Safari, Chrome Android). **Not** a native app; gestures are implemented with touch events / pointer events + CSS, with **graceful degradation** where OS/browser does not expose APIs.
+**Product:** Crypto Wallet Dashboard (mobile)  
+**Audience:** Engineering, QA  
+**Purpose:** Single source of truth for gesture behavior with measurable thresholds for automated and manual testing.
 
-**Principle:** **Touch-first** — every critical action must be reachable **without** relying on gestures; gestures **accelerate** experienced users.
-
----
-
-## 1. AlertCard — Swipe left to reveal delete
-
-### Behavior
-
-- **Horizontal swipe left** on a card reveals a **Delete** action anchored to the **trailing** edge.
-- **Swipe right** (optional) or **tap outside** / **collapse** returns to default state.
-- **Tap Delete** confirms per flow: either **immediate** with **undo toast**, or **confirm bottom sheet** for destructive safety (product choice).
-
-### Parameters
-
-| Parameter | Suggested value |
-|-----------|-----------------|
-| Reveal threshold | ~**25–30%** of card width or **≥ 60px** offset |
-| Delete button width | **72–88px**; **min-height 44px** |
-| Velocity | Fast flick can **snap** open |
-
-### Accessibility
-
-- **Non-gesture path:** **⋯** overflow menu with **Delete** (same confirmation).
-- **Screen readers:** Actions exposed in **rotor** / focus order; swipe is enhancement.
+All distances are in **logical px** (CSS/device-independent unless noted). Times are **ms**. Percentages are **of the referenced container** unless stated otherwise.
 
 ---
 
-## 2. Dashboard — Pull-to-refresh
+## 1. Pull-to-Refresh
 
-### Behavior
+| Attribute | Value |
+|-----------|--------|
+| **Screens** | `SCR-HOME`, `SCR-HISTORY`, `SCR-ALERTS` |
+| **Trigger distance** | **60px** pull-down from rest position |
+| **Threshold behavior** | Release **at or after** 60px → refresh runs; release **before** 60px → cancel (see below) |
+| **Loading indicator** | Circular spinner, **horizontally centered**, **vertically aligned to top of scrollable content** (below safe area / below nav as applicable) |
+| **Cancel** | Release finger **before** 60px threshold → content returns to rest; **no** network/mock refresh |
+| **Feedback at threshold** | **Light** haptic (impact style: light) when pull distance **first reaches** 60px |
+| **Minimum refresh duration** | **800ms** (mock/API layer must not complete UI “refresh” state faster than this) |
+| **Re-trigger** | Allowed only after previous refresh cycle completes (indicator dismissed) |
 
-- **Pull down** when scroll position is **at top** (`scrollTop === 0`) initiates refresh of **coin data** / portfolio summary.
-- **Visual:** Subtle spinner or branded indicator; **release** past threshold triggers fetch.
-- **Threshold:** ~**64–80px** pull distance.
+**QA checks**
 
-### Edge cases
-
-- If **search** is focused, **disable** pull-to-refresh or require **scroll** to top first to avoid conflict.
-- **Rate limit:** Cooldown or ignore repeat pulls within **N** seconds.
-
-### Fallback
-
-- **Explicit** refresh **icon** in header (**44×44px**) performs same action.
-
----
-
-## 3. CoinCard — Tap-and-hold (long press) for quick actions
-
-### Behavior
-
-- **Long press** (~**500ms**–**600ms**) on `CoinCard` opens **quick actions**: e.g. **Convert this coin** (pre-fill From), **Set alert** (opens alert creation with asset selected).
-- **Feedback:** **Haptic** not guaranteed on web — use **light scale** + **short** `navigator.vibrate` pattern optional where supported.
-
-### Menu presentation
-
-- **Bottom sheet** or **context menu** anchored near card; **min 48px** row height; **destructive** actions at bottom with separator.
-
-### Accessibility
-
-- **Long press** has **alternative:** **⋯** on card or detail screen entry.
+- Pull **59px** and release → no refresh, no 800ms lock.
+- Pull **60px** and release → refresh starts, spinner visible ≥ **800ms**.
+- Haptic fires **once** per gesture when crossing 60px (not on every frame).
 
 ---
 
-## 4. Bottom navigation — Swipe between tabs (optional)
+## 2. Horizontal Swipe on List Items
 
-### Behavior (optional / skipped for simplicity)
+**Applies to**
 
-- **Horizontal swipe** on **main content** could switch **adjacent** tabs (e.g., Dashboard ↔ Convert).  
-**Recommendation for CryptoFolio:** **Skip** by default to avoid conflict with **AlertCard** swipe, **carousel** patterns, and **browser back** gestures.
+- `SCR-ALERTS`: alert cards (rows)
+- `SCR-HISTORY`: transaction cards (rows)
 
-### If enabled later
+Assume **row width** = full content width inside horizontal padding (measure at runtime; tests may use a fixed device width).
 
-- **Edge swipe** from screen **left/right** with **narrow** activation zone; **never** steal vertical scroll.
-- **Conflict resolution:** Disable when horizontal scroll containers are present.
+### 2.1 Swipe left (destructive)
 
----
+| Attribute | Value |
+|-----------|--------|
+| **Direction** | Finger moves **left** (content reveals from **right**) |
+| **Reveal** | Red **“Excluir”** action |
+| **Partial swipe threshold** | **40%** of **row width** — crossing commits to “revealed” state showing button |
+| **Full swipe** | Gesture continues past reveal; on **release**, if displacement ≥ **40%** row width → treat as **full intent** → open **confirm bottom sheet** (destructive confirm) |
+| **Spring-back (under threshold)** | If release with displacement **under 40%** row width → row animates back to rest in **200ms**, **ease-out** |
+| **Haptic** | **Light** impact when displacement **first crosses** 40% row width (threshold crossing) |
 
-## 5. Scroll — Natural momentum and rubber-band
+### 2.2 Swipe right (secondary) — `SCR-ALERTS` only
 
-### Behavior
+| Attribute | Value |
+|-----------|--------|
+| **Direction** | Finger moves **right** |
+| **Reveal** | **Amber** toggle action (on/off) |
+| **Threshold** | **30%** of **row width** |
+| **Behavior** | **Under 30%** on release → **200ms** ease-out spring-back; **30% or more** → toggle action **armed** / applied per product rule (state change + optional haptic at crossing) |
 
-- Use **native overflow scrolling** (`-webkit-overflow-scrolling: touch` where relevant); **momentum** scrolling enabled by default on iOS.
-- **Overscroll (“rubber-band”):** Allow default **unless** it breaks nested scroll; avoid global `overscroll-behavior: none` except on modals/sheets.
+### 2.3 Undo (after destructive)
 
-### Nested scroll
-
-- **Bottom sheets:** Inner scroll for long lists; **drag handle** does not fight list scroll — use **distinct** handle area or **threshold** for drag-to-close vs scroll.
-
----
-
-## 6. Bottom sheet — Drag handle, snap points, dismiss
-
-### Behavior
-
-- **Drag handle** centered at top of sheet (**32–40px** wide, **4px** tall) — **decorative + draggable**.
-- **Snap points:** e.g. **half** (~**50%** viewport) and **full** (~**90%** viewport) for `CoinSelector` and long content; **initial** height per use case (selector: **half**; forms: **full**).
-- **Dismiss:** **Swipe down** past threshold; **tap backdrop**; **Cancel** button.
-- **Physics:** Spring-like animation; respect **`prefers-reduced-motion`**.
-
-### Focus
-
-- On open, focus moves to **first focusable** or **search**; on dismiss, returns to **trigger**.
+| Attribute | Value |
+|-----------|--------|
+| **Toast** | Shown after destructive completes (post-confirm) |
+| **Undo label** | **“Desfazer”** |
+| **Duration** | Toast visible **4000ms** (4s) |
+| **Action** | Tap “Desfazer” within 4s reverts last destructive action |
 
 ---
 
-## 7. Keyboard — Auto-dismiss on scroll; numeric for amounts
+## 3. Long-Press
 
-### Auto-dismiss on scroll
+| Attribute | Value |
+|-----------|--------|
+| **Screens** | `SCR-HOME` (coin cards), `SCR-HISTORY` (transaction items) |
+| **Hold duration** | **500ms** continuous press on hit target |
+| **Visual feedback** | Scale card/row to **0.97** (transform scale 0.97) |
+| **Haptic** | **Light** impact at **500ms** recognition |
+| **Menu** | Native-style **context menu** / popover anchored to element |
 
-- When user **scrolls** the main scroll container (or a defined scroll region), **blur** focused inputs to dismiss keyboard — **except** when scroll is **inside** the same focused field’s container if it would cause data loss (rare).
+### 3.1 Coin card (`SCR-HOME`)
 
-### Numeric keyboard for amounts
+Menu entries (order top → bottom):
 
-- **Amount** fields: `inputmode="decimal"` (or `numeric` if integer-only).
-- **Labels** clearly associate currency; **locale** for decimal separator.
+1. **Converter**
+2. **Sacar**
+3. **Criar Alerta**
 
-### Keyboard overlap
+### 3.2 Transaction item (`SCR-HISTORY`)
 
-- On **focus**, scroll focused field into view (`scrollIntoView` with **care** on iOS); fixed CTAs stay **above** keyboard where possible (`visualViewport` resize handling).
+Menu entries:
 
----
+1. **Ver Detalhes**
+2. **Copiar ID**
 
-## 8. Additional touch patterns (supporting)
-
-| Pattern | Spec |
-|---------|------|
-| **Tap** | Primary selection; mitigate **300ms** delay with `touch-action: manipulation` where needed |
-| **Double-tap** | **Avoid** for critical actions (zoom risk); not used in core flows |
-| **Pinch zoom** | **No** custom pinch for core UI; allow browser zoom for accessibility unless product blocks globally |
-| **FAB** | **Tap** creates alert; **position** avoids thumb conflict with nav |
-
----
-
-## 9. Gesture vs. pointer summary
-
-| Gesture | Screen / component | Primary action | Fallback |
-|---------|-------------------|----------------|----------|
-| Swipe left | AlertCard | Reveal delete | Menu |
-| Pull down | Dashboard (top) | Refresh | Header button |
-| Long press | CoinCard | Quick actions | ⋯ menu |
-| Swipe down | Bottom sheet | Dismiss | Backdrop / Cancel |
-| Scroll | Global | Navigate content | — |
+**QA:** Release before 500ms → no menu; at 500ms → scale + haptic + menu; moving finger **> 10px** before 500ms cancels long-press (standard touch slop).
 
 ---
 
-## 10. Testing checklist (manual)
+## 4. Bottom Sheet Drag (Vaul Drawer)
 
-- [ ] All interactive targets **≥ 44×44px** on 320 / 375 / 428.
-- [ ] Safe areas: header, nav, FAB, toasts, fixed CTAs.
-- [ ] Keyboard does not obscure **Convert** amount or **Withdraw** fields.
-- [ ] Pull-to-refresh only at **scroll top**.
-- [ ] Sheet drag vs list scroll **no** accidental closes.
-- [ ] **Reduced motion** reduces sheet travel animation.
+**Applies to:** All bottom sheets (Vaul drawer pattern).
 
-This specification defines **touch and gesture** behavior for CryptoFolio’s mobile web experience, aligned with **bottom sheets**, **sticky search**, and **full-width** touch-first components.
+| Attribute | Value |
+|-----------|--------|
+| **Drag handle** | Visible, **horizontally centered** |
+| **Handle size** | **32px** wide × **4px** tall |
+| **Handle color** | **zinc-600** |
+| **Backdrop** | **zinc-950** at **60%** opacity (`zinc-950/60`) |
+| **Backdrop dismiss** | Tap backdrop → sheet dismisses |
+
+### 4.1 Snap sets
+
+| Sheet class | Examples | Snap points (height % of screen) | Dismiss |
+|-------------|----------|-----------------------------------|---------|
+| **Small** | Confirm, filters | **40%** → drag down to **dismiss** | Below **40%** snap or velocity dismiss (see 4.2) |
+| **Medium** | Coin selector, create alert | **60%** → **40%** → **dismiss** | From lowest engaged snap, drag past dismiss rules |
+| **Large** | Detailed filters | **90%** → **60%** → **dismiss** | Same |
+
+Percentages are **of viewport height**.
+
+### 4.2 Dismiss via drag
+
+| Rule | Value |
+|------|--------|
+| **Dismiss** | User drags sheet **below** the **lowest** active snap point |
+| **Velocity bypass** | If downward velocity **> 500px/s**, **skip** snap-at-rest and **dismiss** (fast fling) |
+
+### 4.3 Scroll handoff
+
+| State | Behavior |
+|-------|----------|
+| Sheet at **max** snap for its class | **Internal content** scrolls |
+| Content scroll **at top** (offset 0) | Further drag on content **moves sheet** |
+| Content not at top | Drag **scrolls content** until top, then sheet drag applies |
+
+---
+
+## 5. Edge Swipe Back (Navigation)
+
+| Attribute | Value |
+|-----------|--------|
+| **Applies to** | All **stack-pushed** screens: `SCR-CONVERT`, `SCR-WITHDRAW`, `SCR-DEPOSIT`, `SCR-TX-DETAIL` |
+| **Gesture zone** | Horizontal touch must start within **0–20px** from **left** physical edge of screen |
+| **Completion threshold** | Finger displacement **≥ 40%** of **screen width** → commit **pop** (back) on release |
+| **Under threshold** | **Under 40%** on release → **spring** current screen to full width (cancel back) |
+| **Animation** | **Parallax**: current screen translates **right**; previous screen visible from left, moves at **0.3×** the current screen’s translation speed (peek) |
+| **Disabled** | **None** for listed screens (no global disable) |
+| **Conflict** | No horizontal carousels on these flows — **no** gesture conflict in MVP |
+
+---
+
+## 6. Scroll Behaviors
+
+### 6.1 FAB hide/show
+
+| Attribute | Value |
+|-----------|--------|
+| **Hide** | On scroll **down**: user content delta **> 10px** (cumulative per direction change) → FAB **hidden** |
+| **Show** | On scroll **up**: delta **> 10px** → FAB **visible** |
+| **Transition** | **200ms** (opacity/transform as implemented; duration fixed at 200ms) |
+
+### 6.2 Top app bar (root tabs)
+
+| Scope | `SCR-HOME`, `SCR-HISTORY`, `SCR-ALERTS` (root tab destinations) |
+|--------|------------------------------------------------------------------|
+| **Behavior** | Large title **collapses** to standard top bar when user scrolls content **down** |
+| **Transition** | **150ms** |
+
+### 6.3 Infinite scroll
+
+| Attribute | Value |
+|-----------|--------|
+| **Used** | **No** — all lists finite (mock data) for MVP |
+
+### 6.4 Scroll position preservation
+
+| Attribute | Value |
+|-----------|--------|
+| **Behavior** | When navigating **push**: History list → detail → **back**, list restores **prior scroll offset** (pixel-for-pixel within same session) |
+
+---
+
+## 7. FAB Speed-Dial
+
+| Attribute | Value |
+|-----------|--------|
+| **Trigger** | **Tap** main FAB (**Plus** icon) |
+| **Expand animation** | **200ms**, **spring** curve (same spec as implementation spring) |
+| **Mini-FABs** | **3** items, **fan upward** with labels |
+| **Backdrop** | **zinc-950** at **40%** opacity (`zinc-950/40`) |
+| **Close actions** | Tap backdrop; tap a mini action; **tap main FAB again** (icon **rotates** to **X** while open) |
+| **Position** | **Bottom-right**; **16px** from **right** edge; **8px** above **tab bar** safe area (bottom inset + tab bar height + 8px) |
+
+---
+
+## 8. Tap Feedback
+
+| Element type | Scale | Duration | Additional |
+|--------------|-------|----------|--------------|
+| **Buttons / interactive controls** | **0.98** | **100ms** | Background flash **zinc-800** |
+| **Cards** | **0.99** | **100ms** | **Subtle** shadow elevation increase on press |
+| **Links / text buttons** | — | **100ms** (press state) | **Opacity 0.7** while pressed |
+
+**QA:** Use slow-motion recording; scale and duration apply on **touch down** / press state; cards use **0.99** not **0.98**.
+
+---
+
+## Screen ID Reference (Gesture-Relevant)
+
+| ID | Notes |
+|----|--------|
+| `SCR-HOME` | Pull-to-refresh, long-press coin cards, FAB, bar collapse |
+| `SCR-HISTORY` | Pull-to-refresh, swipe rows, long-press, preservation |
+| `SCR-ALERTS` | Pull-to-refresh, swipe L/R on rows |
+| `SCR-CONVERT`, `SCR-WITHDRAW`, `SCR-DEPOSIT`, `SCR-TX-DETAIL` | Edge swipe back |
+
+---
+
+*Document version: aligned with Crypto Wallet Dashboard mobile MVP. Update when new carousels or sheets are added.*

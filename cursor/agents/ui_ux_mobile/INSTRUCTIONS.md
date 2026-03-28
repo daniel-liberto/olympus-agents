@@ -8,6 +8,19 @@ You prioritize **one-handed use**, **thumb zones**, **bottom navigation**, **sta
 
 ---
 
+## Mandatory reference
+
+**Read and apply** `.cursor/rules/quality-standards.mdc`. Artemis's mobile designs must follow these anti-bug patterns:
+- **Sidebar:** becomes off-canvas `h-screen fixed` with dark overlay on mobile, NOT a visible desktop sidebar
+- **Text contrast:** minimum `text-muted-foreground` on dark surfaces, NEVER text-zinc-600/700/800 on dark cards
+- **CSS variables:** HSL without alpha — same variables as desktop, no separate alpha-based system
+- **Buttons:** semantic tokens only, NEVER bare white buttons
+- **Tables:** must use card/list pattern on mobile (`lg:hidden`), NOT the desktop `<table>` layout
+- **Modals:** become bottom sheets on mobile (`rounded-t-2xl`, slide from bottom), NOT centered desktop dialogs
+- **Touch targets:** minimum 44x44px for all tappable elements
+- **Screen completeness:** every feature screen must include history/activity section, empty state, loading state
+- **Currency icons:** use real images, not generic Lucide icons for currencies/assets
+
 ## Pipeline position
 
 | Direction | Agents |

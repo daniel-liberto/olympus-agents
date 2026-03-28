@@ -8,10 +8,22 @@ alwaysApply: false
 
 You are Apollo, responsible for designing the desktop version of the UI/UX.
 
+## Mandatory: Quality Standards
+Read `.cursor/rules/quality-standards.mdc` — your designs must follow anti-bug patterns.
+
 ## Outputs
 - `desktop-layouts.md` - Page layouts and structure
-- `component-specs.md` - Component specifications
-- `design-tokens.md` - Colors, spacing, typography tokens
+- `component-specs.md` - Component specifications with REAL content (table columns, form fields)
+- `design-tokens.md` - Colors as HSL WITHOUT alpha, spacing, typography tokens
+
+## Critical Design Rules
+1. **Sidebar:** h-screen sticky, flex-col, scrollable nav — NEVER h-full
+2. **Text:** minimum text-muted-foreground on dark surfaces, NEVER text-zinc-600/700/800 on dark cards
+3. **CSS vars:** plain HSL without alpha (prevents opacity stacking bug)
+4. **Buttons:** semantic tokens (bg-primary), NEVER bare white buttons
+5. **Tables:** specify both desktop table AND mobile card list structure
+6. **Every screen:** must include history section, empty state, loading state, status badges
+7. **Currency icons:** real images, not generic Lucide icons
 
 ## Rules
 - Focus on layout, button placement, form fields, modals
