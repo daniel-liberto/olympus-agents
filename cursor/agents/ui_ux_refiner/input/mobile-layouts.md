@@ -1,453 +1,521 @@
-# Crypto Wallet Dashboard — Mobile Layouts
+# Mobile Layouts — CryptoFolio
 
-**Artemis · Mobile UI/UX**  
-Mobile-first layouts for the crypto wallet. **Stack:** shadcn/ui, **Vaul** (drawers/sheets), **Lucide** icons. **Theme:** dark default.
+## App Shell (All Authenticated Screens)
 
----
+### Bottom Tab Bar
 
-## Design System (mobile)
+```
+┌─────────────────────────────────────────┐
+│  ⊙ Home    ⊙ Carteira    ⊙ Converter   │
+│  LayoutDash  Wallet      ArrowLeftRight │
+│                                         │
+│  h-16 (64px) + safe-area-bottom         │
+│  bg-background border-t border-border   │
+│  fixed bottom-0 w-full z-30            │
+└─────────────────────────────────────────┘
+```
 
-| Layer | Tokens |
-|--------|--------|
-| **Background** | `zinc-950` |
-| **Surfaces / cards** | `zinc-900` (elevated), `zinc-800` borders / inputs |
-| **Primary / CTAs** | Amber–orange (`amber-500` primary actions) |
-| **Success** | `emerald-500` (confirmed, gains, positive Δ) |
-| **Errors / destructive** | `red-500` (failures, losses, negative Δ) |
-| **Text** | High: `zinc-50`–`zinc-100`; muted: `zinc-400`–`zinc-500` |
+**Tabs**: 3 main destinations
+| Tab | Icon (Lucide) | Label | Route |
+|-----|--------------|-------|-------|
+| Home | LayoutDashboard | Home | /app/dashboard |
+| Carteira | Wallet | Carteira | /app/wallet |
+| Converter | ArrowLeftRight | Converter | /app/convert |
 
-**Coins supported:** BTC, ETH, BNB, SOL, ADA, USDT, USDC. **Fiat display:** BRL.
+**Active state**: `text-primary` icon + label, subtle `bg-primary/10` pill behind icon
+**Inactive state**: `text-muted-foreground`
+**Badge**: dot on tab icon when notification (alerts triggered)
+**Keyboard behavior**: hide bottom tab bar when virtual keyboard is open
 
----
+### Top App Bar
 
-## App Shell
+```
+┌─────────────────────────────────────────┐
+│  [☰]  CryptoFolio           [🔔] [👤]  │
+│  h-14 (56px) + safe-area-top            │
+│  bg-background/80 backdrop-blur         │
+│  sticky top-0 z-40                      │
+└─────────────────────────────────────────┘
+```
 
-### 1. Bottom Tab Bar (4 tabs)
+**Left**: Hamburger menu (Menu icon) → opens sidebar drawer
+**Center**: Page title or "CryptoFolio" on home
+**Right**: Notifications bell (Bell icon, badge dot when alerts) + Avatar (→ profile)
 
-| Tab | Label | Lucide |
-|-----|--------|--------|
-| 1 | Home | `LayoutDashboard` |
-| 2 | Histórico | `Clock` |
-| 3 | Alertas | `Bell` |
-| 4 | Configurações | `Settings` |
+### Sidebar Drawer (Off-Canvas)
 
-- **Height:** ~56px + safe-area inset bottom (`env(safe-area-inset-bottom)`).
-- **Behavior:** Hidden while the soft keyboard is open (resize/or `Keyboard` API) so inputs are not obscured.
-- **Style:** `zinc-900` bar, `zinc-800` top hairline; active tab amber accent, inactive `zinc-500`.
+```
+Overlay: fixed inset-0 bg-black/50 z-40
+Drawer: fixed left-0 top-0 w-[280px] h-screen z-50 bg-background border-r border-border
+        transform transition-transform duration-300
+        closed: -translate-x-full
+        open: translate-x-0
 
-### 2. FAB (Floating Action Button)
+Content (same structure as desktop sidebar):
+  Logo header
+  Nav sections: Principal, Transações, Outros
+  Footer: Suporte, User area
+```
 
-- **Position:** Bottom-right, above the tab bar + safe area (clear ~72–80px from bottom edge of screen content area).
-- **Icon:** `Plus` (Lucide).
-- **Interaction:** Tap opens **speed-dial** with 3 actions: **Convert** (`ArrowLeftRight`), **Withdraw** (`ArrowUpFromLine`), **Deposit** (`ArrowDownToLine`). Each action navigates to the corresponding stack route (`/convert`, `/withdraw`, `/deposit`).
-- **Scroll:** Hide on scroll **down**, show on scroll **up** (same scroll container as current screen body where applicable).
+**Close**: tap overlay, tap X button, or swipe left on drawer
 
-### 3. Navigation
+### Stack Navigation
 
-- **Stack:** Standard push for detail and action screens (convert, withdraw, deposit, transaction detail).
-- **Modal stack:** Quick-create flows that can overlay without losing tab context (e.g. alert creation as sheet).
+- **Push** for: Wallet detail, Settings sub-pages, Support
+- **Modal stack** (bottom sheet): Alert create/edit, Transaction detail, Confirmations
+- **Back**: top-left ChevronLeft icon + iOS swipe-back gesture (enabled by default)
 
-### 4. Top App Bar
+### Safe Areas
 
-- **Root tabs:** Large title (iOS-style large header optional); **collapses** to compact bar on scroll.
-- **Inner stack:** Title centered or start-aligned; **back** on left when `history.length > 1`.
-- **Actions:** Optional right cluster — e.g. `Search`, `Filter` (context-dependent).
-- **Elevation:** Subtle bottom border `zinc-800` or blur scrim on scroll.
-
-### 5. User Profile (Home)
-
-- **Home tab only:** Avatar **top-right** in app bar. **Tap →** navigates to **Settings** tab (or `/settings` with tab selected), not a separate profile screen in this scope.
-
----
-
-## Screens (all 11)
-
----
-
-### 1. SCR-HOME — `/dashboard`
-
-| Field | Value |
-|--------|--------|
-| **Screen ID** | SCR-HOME |
-| **Route** | `/dashboard` |
-| **Navigation** | **Tab root** (Home) |
-
-**App bar**
-
-- **Title:** Large “Carteira” / “Resumo” (product name as needed); collapsible on scroll.
-- **Actions:** Avatar **right** → Settings. Optional **search** icon if global search is promoted; otherwise search lives in body only.
-
-**Body** (vertical **scroll** container, full height above tab bar)
-
-1. **Quick search** — Text input at top (`zinc-800` field), filters coin list client-side; `Search` icon optional inside field.
-2. **Horizontal stat strip** — Scroll-snap horizontal row of **stat cards**: (a) total portfolio value BRL, (b) 24h change (emerald/red), (c) asset count. Snap: `snap-x snap-mandatory`, cards `snap-start`.
-3. **Vertical coin list** — **Coin cards** (`zinc-900`): coin icon + name, balance, value in **BRL**, **24h change badge** (emerald/red).
-
-**Bottom**
-
-| Element | Visible? |
-|---------|----------|
-| Tab bar | **Yes** |
-| FAB | **Yes** (hide/show with scroll) |
-| Sticky footer | **No** |
-
-**Sheets vs full screen**
-
-- Coin detail (if added later): stack; not required on this screen.
-
-**Gestures / refresh**
-
-- **Pull-to-refresh** on main scroll: refetch balances and quotes.
+- Top: `pt-[env(safe-area-inset-top)]` or min 44px
+- Bottom: `pb-[env(safe-area-inset-bottom)]` + tab bar height (64px)
+- Content area: `pb-24` to account for tab bar + safe area
 
 ---
 
-### 2. SCR-CONVERT — `/convert`
+## SCR-LANDING: Landing Page (Mobile)
 
-| Field | Value |
-|--------|--------|
-| **Screen ID** | SCR-CONVERT |
-| **Route** | `/convert` |
-| **Navigation** | **Stack push** (from FAB speed-dial or deep link) |
+**Route**: `/`
+**App bar**: Hidden (custom header)
 
-**App bar**
-
-- **Title:** “Converter”
-- **Actions:** **Back** (left implied). No search.
-
-**Body** (scroll; keyboard-aware padding)
-
-1. **Source coin** — Row / card; tap opens **bottom sheet** (Vaul) with searchable coin list (BTC, ETH, BNB, SOL, ADA, USDT, USDC).
-2. **Amount** — Numeric input (`inputMode="decimal"`), BRL helper text optional.
-3. **Swap** — Centered circular button (`ArrowDownUp` or swap icon) swaps source/dest selection.
-4. **Destination coin** — Same pattern; **bottom sheet** selector.
-5. **Rate preview** — Read-only row: rate, spread, countdown if applicable.
-6. **Fee** — Row: network / platform fee in BRL or crypto.
-
-**Bottom**
-
-| Element | Visible? |
-|---------|----------|
-| Tab bar | **No** (stack covers tabs) |
-| FAB | **No** |
-| Sticky footer | **Yes** — primary **“Converter”** (`amber`) full-width |
-
-**Sheets vs full screen**
-
-- Selectors: **bottom sheets**.
-- **Confirm:** Summary **bottom sheet** (Vaul) after tapping “Converter”: amounts, rate, fee, **Confirm** / Cancel.
-
----
-
-### 3. SCR-WITHDRAW — `/withdraw`
-
-| Field | Value |
-|--------|--------|
-| **Screen ID** | SCR-WITHDRAW |
-| **Route** | `/withdraw` |
-| **Navigation** | **Stack push** |
-
-**App bar**
-
-- **Title:** “Sacar”
-- **Back** + optional **help** icon right.
-
-**Body** (scroll)
-
-1. **Coin selector** — Sheet or inline list; same 7 coins + stablecoins.
-2. **Method toggle** — **Crypto** | **Fiat** (segmented control).
-3. **Amount** — Numeric; max available chip.
-4. **Destination fields** — Crypto: address, memo/tag if needed. Fiat: bank fields (PIX/agency per product).
-5. **Network selector** — When crypto; **bottom sheet** for chain list.
-6. **Fee** — Display estimated fee and time.
-
-**Bottom**
-
-| Element | Visible? |
-|---------|----------|
-| Tab bar | **No** |
-| FAB | **No** |
-| Sticky footer | **Yes** — **“Sacar”** |
-
-**Sheets**
-
-- **Confirmation bottom sheet** before submit: address/bank summary, amount, fee, **Confirmar**.
+```
+┌─────────────────────────────────────┐
+│ [Logo]              [Entrar] [Menu] │  ← sticky header
+├─────────────────────────────────────┤
+│                                     │
+│  "Suas criptomoedas,               │
+│   simplificadas."                   │  ← h1 text-2xl font-bold
+│                                     │
+│  "Acompanhe, converta e saque..."   │  ← text-base text-muted-foreground
+│                                     │
+│  [Criar conta grátis]               │  ← primary button, w-full
+│                                     │
+├─────────────────────────────────────┤
+│  FEATURES (stack, gap-4)            │
+│  ┌────────────────────────────────┐ │
+│  │ 👁 Portfólio em tempo real     │ │  ← card, p-4
+│  └────────────────────────────────┘ │
+│  ┌────────────────────────────────┐ │
+│  │ ⇄ Conversão instantânea       │ │
+│  └────────────────────────────────┘ │
+│  ┌────────────────────────────────┐ │
+│  │ 🔔 Alertas inteligentes       │ │
+│  └────────────────────────────────┘ │
+├─────────────────────────────────────┤
+│  HOW IT WORKS (vertical steps)      │
+├─────────────────────────────────────┤
+│  FINAL CTA (w-full button)          │
+├─────────────────────────────────────┤
+│  Footer links (stacked)             │
+└─────────────────────────────────────┘
+```
 
 ---
 
-### 4. SCR-DEPOSIT — `/deposit`
+## SCR-AUTH-LOGIN: Login (Mobile)
 
-| Field | Value |
-|--------|--------|
-| **Screen ID** | SCR-DEPOSIT |
-| **Route** | `/deposit` |
-| **Navigation** | **Stack push** |
+**Route**: `/login`
+**Layout**: Full-screen, no tab bar, no app bar
 
-**App bar**
+```
+┌─────────────────────────────────────┐
+│  (safe area top)                    │
+│                                     │
+│  ● CryptoFolio (logo, centered)    │
+│                                     │
+│  "Entrar na sua conta"              │  ← text-xl font-semibold
+│                                     │
+│  [Email]      inputmode="email"     │
+│  [Senha]      type="password"       │
+│  "Esqueceu a senha?"  ← right link │
+│                                     │
+│  [Entrar]     ← primary, w-full    │
+│                                     │
+│  "Não tem conta? Criar conta"       │
+│                                     │
+│  (safe area bottom)                 │
+└─────────────────────────────────────┘
+```
 
-- **Title:** “Depositar”
-- **Back**
-
-**Body** (scroll)
-
-1. **Coin selector** — Tap → **bottom sheet** (7 coins).
-2. **Network selector** — **Bottom sheet** (chains per coin).
-3. **Deposit address** — Monospace, truncated with copy; **QR code** centered (`zinc-900` card).
-4. **Copy** — Primary outline or ghost **“Copiar endereço”**; toast on success (emerald).
-5. **Warning banner** — Amber border: min confirmations, only send on selected network, contract warnings for USDT/USDC.
-
-**Bottom**
-
-| Element | Visible? |
-|---------|----------|
-| Tab bar | **No** |
-| FAB | **No** |
-| Sticky footer | **Optional** — “Compartilhar QR” secondary; not required if copy suffices |
-
-**Sheets**
-
-- Coin and network: **bottom sheets** only.
+**Auto-focus**: EmailInput on load
+**Keyboard**: Form scrolls up when keyboard opens, submit button stays visible
 
 ---
 
-### 5. SCR-HISTORY — `/history`
+## SCR-AUTH-SIGNUP: Cadastro (Mobile)
 
-| Field | Value |
-|--------|--------|
-| **Screen ID** | SCR-HISTORY |
-| **Route** | `/history` |
-| **Navigation** | **Tab root** (Histórico) |
-
-**App bar**
-
-- **Large title:** “Histórico”; collapses on scroll.
-- **Actions:** **Filter** (`SlidersHorizontal` or `Filter`) opens filter context; **Search** optional for tx hash.
-
-**Body** (scroll)
-
-1. **Filter chips** — Horizontal scroll: **type** (all, deposit, withdraw, convert, …), **period**, **coin**. Tap chip opens **bottom sheet** with granular options + **Aplicar**.
-2. **Transaction list** — **Cards**: type icon (Lucide per type), coin ticker, signed amount, date/time, **status badge** (pending amber / confirmed emerald / failed red).
-
-**Bottom**
-
-| Element | Visible? |
-|---------|----------|
-| Tab bar | **Yes** |
-| FAB | **No** on this tab (speed-dial lives on Home; optional parity: hide FAB globally here or keep — **spec: FAB only on Home tab** for clarity) |
-| Sticky footer | **No** |
-
-**Note:** If FAB is global shell, show same scroll behavior; product may restrict FAB to Home only — **default:** FAB **hidden** on Histórico/Alertas/Settings for less clutter, **or** show on all tabs — **recommendation:** **Home only** for primary actions.
-
-**Gestures**
-
-- **Pull-to-refresh** transaction list.
-- Tap row → **SCR-TX-DETAIL**.
+Same pattern as login, vertical stack:
+Logo → title → Name → Email → Password + StrengthBar → Confirm Password → Submit → Login link
+**Keyboard-aware**: scroll to focused field
 
 ---
 
-### 6. SCR-TX-DETAIL — `/history/:txId`
+## SCR-AUTH-FORGOT / SCR-AUTH-RESET
 
-| Field | Value |
-|--------|--------|
-| **Screen ID** | SCR-TX-DETAIL |
-| **Route** | `/history/:txId` |
-| **Navigation** | **Stack push** from history list |
-
-**App bar**
-
-- **Title:** “Detalhes” or tx short id
-- **Back** prominent
-
-**Body** (scroll)
-
-- **Single detail card** (`zinc-900`): amount, coin, fiat value BRL, type, date, **status badge large**, network, txid with copy, explorer link (if crypto), fee line, memo.
-
-**Bottom**
-
-| Element | Visible? |
-|---------|----------|
-| Tab bar | **No** |
-| FAB | **No** |
-| Sticky footer | **No** (optional **“Ver no explorer”** sticky on crypto) |
-
-**Sheets**
-
-- None required; **share** via system sheet if needed.
+Same centered card pattern, single column, full-width buttons.
 
 ---
 
-### 7. SCR-ALERTS — `/alerts`
+## SCR-DASHBOARD: Dashboard / Home (Mobile)
 
-| Field | Value |
-|--------|--------|
-| **Screen ID** | SCR-ALERTS |
-| **Route** | `/alerts` |
-| **Navigation** | **Tab root** (Alertas) |
+**Route**: `/app/dashboard`
+**Tab**: Home (active)
+**App bar**: "CryptoFolio" | [Bell] [Avatar]
 
-**App bar**
+```
+┌─────────────────────────────────────┐
+│ [☰] CryptoFolio        [🔔] [👤]  │
+├─────────────────────────────────────┤
+│  PORTFOLIO BALANCE (p-4)            │
+│  "Saldo Total" ← text-sm muted     │
+│  "R$ 45.230,87" ← text-3xl bold    │
+│  "+2.4% (24h)" ← Badge success     │
+├─────────────────────────────────────┤
+│  QUICK ACTIONS (flex gap-3, px-4)   │
+│  ┌──────┐ ┌──────┐ ┌──────┐       │
+│  │ ↓    │ │ ⇄    │ │ ↑    │       │
+│  │Depos.│ │Conv. │ │Sacar │       │
+│  └──────┘ └──────┘ └──────┘       │
+│  (equal width, bg-primary/10)       │
+├─────────────────────────────────────┤
+│  CHART (p-4)                        │
+│  Period: [7d] [30d] [90d] ← pills  │
+│  Area chart (h-48)                  │
+├─────────────────────────────────────┤
+│  SEARCH (px-4)                      │
+│  🔍 "Buscar ativo..."              │
+├─────────────────────────────────────┤
+│  ASSET LIST (mobile cards)          │
+│  ┌─────────────────────────────────┐│
+│  │ [BTC] Bitcoin     R$ 23.456  ↑ ││  ← card row, h-16
+│  │       0.34 BTC     +2.1%      ││
+│  ├─────────────────────────────────┤│
+│  │ [ETH] Ethereum    R$ 8.552   ↓ ││
+│  │       2.5 ETH      -0.8%      ││
+│  └─────────────────────────────────┘│
+│  Tap row → /app/wallet/:coinId      │
+├─────────────────────────────────────┤
+│  RECENT TRANSACTIONS                │
+│  "Últimas Transações" "Ver todas →" │
+│  ┌─────────────────────────────────┐│
+│  │ ↓ Depósito  0.5 BTC  Confirm. ││
+│  │ ⇄ Conversão ETH→BRL  Confirm. ││
+│  │ ↑ Saque     R$ 5.000 Process. ││
+│  └─────────────────────────────────┘│
+├─────────────────────────────────────┤
+│  [Home●]  [Carteira]  [Converter]   │  ← Bottom tab bar
+└─────────────────────────────────────┘
+```
 
-- **Large title:** “Alertas”
-- **Actions:** **“+”** or rely on **FAB** from shell — **spec:** **“+”** in app bar **or** FAB visible (same as Home). **Recommendation:** **App bar `+`** for create to avoid duplicate with speed-dial; **alternative:** only **FAB** with speed-dial including “Novo alerta” — **chosen:** **App bar `Plus`** opens **SCR-ALERT-CREATE** sheet **and** FAB on Home remains for convert/withdraw/deposit.
-
-**Body** (scroll)
-
-- **Alert cards:** coin, condition (e.g. “BTC > X”), direction, enabled toggle; **swipe-to-delete** (red background, `Trash2`).
-
-**Bottom**
-
-| Element | Visible? |
-|---------|----------|
-| Tab bar | **Yes** |
-| FAB | **Optional** — if shown, `Plus` could open alert sheet; **prefer** app bar + for Alert tab to distinguish from wallet actions |
-
-**Gestures**
-
-- **Pull-to-refresh** alert list.
-- **Swipe left** delete with undo snackbar optional.
-
----
-
-### 8. SCR-ALERT-CREATE — (modal / sheet route)
-
-| Field | Value |
-|--------|--------|
-| **Screen ID** | SCR-ALERT-CREATE |
-| **Route** | e.g. `/alerts/new` or state-only overlay (implementation: **presented as sheet**) |
-| **Navigation** | **Bottom sheet (Vaul)** — **~60% height**, **snap points** (e.g. 60% / 90%) |
-
-**App bar**
-
-- Sheet **drag handle** + title **“Novo alerta”** in sheet header (no full app bar).
-
-**Body** (inside sheet, scroll if needed)
-
-1. **Coin selector** — Opens nested **bottom sheet** or inline list.
-2. **Direction toggle** — Acima de / Abaixo de (or Above/Below price).
-3. **Percentage or target** — Numeric **%** or price input.
-4. **Save** — Primary at bottom of sheet or sticky in sheet footer.
-
-**Bottom (shell)**
-
-| Element | Visible? |
-|---------|----------|
-| Tab bar | **Visible behind** dimmed backdrop (typical) or sheet covers full width |
-| FAB | Obscured by sheet |
-| Sticky footer | **Inside sheet:** **“Salvar alerta”** |
-
-**Dismiss**
-
-- Swipe down or tap scrim to close; validate unsaved changes.
+**Pull-to-refresh**: enabled, refreshes portfolio data
+**Empty state**: "Seu portfólio está vazio" + CTA "Depositar"
 
 ---
 
-### 9. SCR-SETTINGS — `/settings`
+## SCR-WALLET: Carteira (Mobile)
 
-| Field | Value |
-|--------|--------|
-| **Screen ID** | SCR-SETTINGS |
-| **Route** | `/settings` |
-| **Navigation** | **Tab root** (Configurações) |
+**Route**: `/app/wallet`
+**Tab**: Carteira (active)
+**App bar**: "Carteira" | total balance subtitle
 
-**App bar**
+```
+App bar: "Carteira"
+Subtitle: "R$ 45.230,87"
 
-- **Large title:** “Configurações”
-- **Avatar** not duplicated if this is settings-only; optional **edit** icon.
+Search: 🔍 "Buscar ativo..."
+Sort: Dropdown button (right of search)
 
-**Body** (scroll, grouped **list**)
+Asset Cards (divide-y):
+  Each card (p-4, h-16, flex items-center justify-between):
+    Left: [coin icon w-10 h-10] + Name/Symbol stack
+    Right: Value (BRL) + Variation badge
+    Tap → /app/wallet/:coinId
+    
+Empty: "Nenhum ativo" + CTA "Depositar"
+```
 
-1. **Display currency** — Row: BRL; tap → sheet or sub-page to change (if multi-fiat later).
-2. **Theme** — Toggle: **Escuro** default (dark); light optional — **toggle** row.
-3. **Notifications** — Row → push/email toggles sub-screen or inline switches.
-4. **Account info** — Email, KYC status, logout destructive at bottom (`red` text).
-
-**Bottom**
-
-| Element | Visible? |
-|---------|----------|
-| Tab bar | **Yes** |
-| FAB | **No** |
+**Pull-to-refresh**: enabled
 
 ---
 
-### 10. SCR-404 — `*` (catch-all)
+## SCR-WALLET-DETAIL: Detalhe do Ativo (Mobile)
 
-| Field | Value |
-|--------|--------|
-| **Screen ID** | SCR-404 |
-| **Route** | `*` / unknown |
-| **Navigation** | **Full screen** (replaces content; no tabs or minimal chrome) |
+**Route**: `/app/wallet/:coinId`
+**Navigation**: Push from wallet list
+**App bar**: "← Bitcoin" (back + coin name)
 
-**App bar**
+```
+App bar: [←] Bitcoin (BTC)
 
-- **None** or minimal logo-only header.
+Header Card (p-4, bg-card rounded-xl mx-4):
+  [BTC icon w-12 h-12]
+  Price: R$ 367.432,00
+  Change: +2.1% badge
 
-**Body**
+Balance Section (p-4):
+  "Seu saldo"
+  "0.5423 BTC"
+  "≈ R$ 23.456,78"
 
-- **Illustration** (empty / lost wallet motif, `zinc-700` strokes).
-- **Title:** “Página não encontrada”
-- **Message:** Short copy.
-- **CTA:** **“Ir para Home”** → `replace` to `/dashboard`.
+Action Buttons (flex gap-3, px-4):
+  [Depositar] [Converter] [Sacar] (equal width, outline)
 
-**Bottom**
+Price Chart (p-4, h-48):
+  Period pills: [7d] [30d] [90d] [1y]
 
-| Element | Visible? |
-|---------|----------|
-| Tab bar | **No** |
-| FAB | **No** |
-| Sticky footer | **No** — CTA in body |
+Transaction History (mobile cards):
+  Section title: "Transações"
+  Card list (same as dashboard recent tx pattern)
+  Load more button
+  Empty: "Nenhuma transação com Bitcoin"
+```
 
 ---
 
-### 11. SCR-EMPTY — `/dashboard` (empty state)
+## SCR-DEPOSIT: Depósito (Mobile)
 
-| Field | Value |
-|--------|--------|
-| **Screen ID** | SCR-EMPTY |
-| **Route** | `/dashboard` (same as SCR-HOME) |
-| **Navigation** | **Tab root** — conditional empty state |
+**Route**: `/app/deposit`
+**Navigation**: Push from sidebar/dashboard
+**App bar**: "← Depositar"
 
-**App bar**
+```
+App bar: [←] Depositar
 
-- Same as SCR-HOME (large title + avatar).
+Content (px-4, scrollable):
+  CoinSelector (full-width Select)
+  
+  QR Code Card (bg-card rounded-xl p-6, text-center):
+    QR image (w-40 h-40, centered, bg-white rounded-xl p-2)
+    Address (font-mono text-xs, break-all, max-2-lines + expand)
+    [Copiar endereço] (primary, w-full)
+  
+  Warning Banner (bg-warning/10, p-3, rounded-lg):
+    "⚠️ Envie apenas {coin}..."
 
-**Body**
+  History Section:
+    "Histórico de Depósitos"
+    Mobile card list (type + amount + status badge + date)
+    Empty: "Nenhum depósito"
+```
 
-- **No** coin list; **centered block:**
-  - Illustration
-  - **“Você ainda não tem moedas”**
-  - Primary **“Fazer depósito”** → navigates to **SCR-DEPOSIT** (`/deposit` stack push).
+---
 
-**Optional:** Dismissible tip card (amber) for first run.
+## SCR-CONVERT: Conversão (Mobile)
 
-**Bottom**
+**Route**: `/app/convert`
+**Tab**: Converter (active)
 
-| Element | Visible? |
-|---------|----------|
-| Tab bar | **Yes** |
-| FAB | **Yes** (speed-dial still useful for deposit) |
-| Sticky footer | **No** |
+```
+App bar: "Converter"
 
-**Pull-to-refresh**
+Content (px-4):
+  FROM Section:
+    "De" label
+    CoinSelector (full-width) + "Saldo: 0.5 BTC"
+    AmountInput (text-2xl, centered, full-width, inputmode="decimal")
+    "Usar máximo" link
 
-- Still applicable; refreshes and may transition to SCR-HOME when first deposit arrives.
+  SwapButton (centered, -my-2, z-10)
+
+  TO Section:
+    "Para" label
+    CoinSelector (full-width)
+    Preview (text-2xl, centered, read-only, bg-muted)
+
+  Rate Card (bg-muted/50, rounded-lg, p-3, text-sm):
+    "1 BTC = 18.23 ETH"
+    "Taxa: 0.5%"
+    "Fee: R$ 12,50"
+
+  Sticky Footer (fixed bottom, above tab bar):
+    [Converter] (primary, w-full, h-12)
+
+History Section:
+  "Histórico de Conversões"
+  Mobile card list
+  Empty: "Nenhuma conversão"
+```
+
+**Keyboard**: AmountInput focused → sticky footer moves above keyboard
+
+---
+
+## SCR-WITHDRAW: Saque (Mobile)
+
+**Route**: `/app/withdraw`
+**App bar**: "← Sacar"
+
+```
+Content (px-4):
+  CoinSelector (full-width)
+  
+  [if crypto]:
+    DestinationInput (full-width, inputmode="text", paste button)
+  [if BRL]:
+    BankAccountSelector (full-width Select)
+    "Adicionar conta" link if empty
+  
+  AmountInput (text-2xl, inputmode="decimal")
+  Balance + "Usar máximo"
+  
+  Fee Card (bg-muted/50):
+    Fee, valor líquido, tempo estimado
+
+  Sticky Footer:
+    [Sacar] (primary, w-full, h-12)
+
+History:
+  Mobile card list
+  Empty: "Nenhum saque"
+```
+
+---
+
+## SCR-ALERTS: Alertas (Mobile)
+
+**Route**: `/app/alerts`
+**App bar**: "← Alertas" | [+] button (right)
+
+```
+Active Alerts (vertical list, gap-3, px-4):
+  AlertCard (bg-card rounded-xl p-4):
+    Top row: [BTC icon] Bitcoin | [⋮] overflow menu (edit, delete)
+    Middle: "Acima de R$ 400.000" (text-lg font-bold)
+    Bottom: "Atual: R$ 367.432" (text-sm muted)
+
+Empty: Bell icon, "Nenhum alerta", CTA "Novo Alerta"
+
+Triggered History:
+  Section title + mobile card list
+```
+
+**New Alert**: Bottom sheet (Vaul Drawer, snap to 70% height)
+**Edit**: Same bottom sheet, pre-filled
+**Delete**: Confirmation bottom sheet (short, snap 30%)
+
+---
+
+## SCR-HISTORY: Histórico (Mobile)
+
+**Route**: `/app/history`
+**App bar**: "← Histórico" | [Export] icon button
+
+```
+Filter Bar (horizontal scroll, px-4):
+  Pill tabs: [Todos] [Depósitos] [Conversões] [Saques]
+  (scrollable if more filters)
+
+Filter Row below (horizontal):
+  Coin filter (chip) + Period filter (chip) + Status filter (chip)
+  Tap chip → bottom sheet with options
+
+Transaction Cards (divide-y):
+  Each (p-4):
+    Left: Type icon (w-10 h-10 rounded-full bg-muted/20) + Description
+    Right: Amount + Status badge
+    Below: Date (text-xs muted)
+    Tap → Transaction detail bottom sheet
+
+Load More button
+Empty: "Nenhuma transação"
+Filtered empty: "Nenhum resultado" + "Limpar filtros"
+```
+
+**Transaction Detail**: Bottom sheet (Vaul, snap 80%), same content as desktop modal
+
+---
+
+## SCR-SETTINGS: Configurações (Mobile)
+
+**Route**: `/app/settings`
+**App bar**: "← Configurações"
+
+```
+Settings List (divide-y, bg-card rounded-xl mx-4):
+  [User icon] Perfil          [→]
+  [Shield]    Segurança       [→]
+  [Bell]      Notificações    [→]
+  [Building]  Contas Bancárias [→]
+  [Palette]   Preferências    [→]
+
+Each item: p-4, flex items-center justify-between, tap → push screen
+```
+
+---
+
+## SCR-SET-PROFILE / SECURITY / NOTIF / BANKS / PREFS
+
+Each is a **push screen** from settings:
+
+**Profile**: App bar "← Perfil", Avatar upload (centered, w-20 h-20), Name input, Email display, Save button (sticky footer)
+
+**Security**: App bar "← Segurança", Current password → New password + strength bar → Confirm → Submit (sticky footer)
+
+**Notifications**: App bar "← Notificações", Toggle list (same as desktop but full-width)
+
+**Bank Accounts**: App bar "← Contas Bancárias" | [+] button, Account cards with swipe-to-delete, Add/Edit via bottom sheet
+
+**Preferences**: App bar "← Preferências", Theme toggle + Currency selector
+
+---
+
+## SCR-SUPPORT: Suporte (Mobile)
+
+**Route**: `/app/support`
+**App bar**: "← Suporte"
+
+```
+Search (px-4, mb-4):
+  🔍 "Buscar ajuda..."
+
+FAQ Accordion (px-4):
+  Sections with expandable items
+  Touch-friendly: min 44px tap target per item
+
+Contact Card (bg-card rounded-xl p-4 mx-4 mt-6):
+  "Precisa de ajuda?"
+  "suporte@cryptofolio.com.br"
+  [Enviar email] (outline, w-full)
+```
+
+---
+
+## SCR-404: Página Não Encontrada (Mobile)
+
+Full-screen centered, no tab bar:
+- Large "404" or illustration
+- Title + description
+- [Voltar ao início] button (primary, w-full, max-w-xs)
 
 ---
 
 ## Screen Coverage Table
 
-| Screen ID | Route | Mobile Pattern | Gesture Notes | Parity with Apollo |
-|-----------|--------|----------------|---------------|-------------------|
-| SCR-HOME | `/dashboard` | Tab + scroll + horizontal snap stats | Pull-to-refresh; FAB scroll hide/show | Same portfolio data, BRL, 7 coins; layout adapts from tables to cards |
-| SCR-CONVERT | `/convert` | Full-screen stack + sticky CTA | Sheets for selectors; confirm sheet | Same conversion flow and fields as desktop |
-| SCR-WITHDRAW | `/withdraw` | Full-screen stack + sticky CTA | Confirm sheet | Same withdraw logic; mobile-first keyboard |
-| SCR-DEPOSIT | `/deposit` | Full-screen stack | Copy + QR; warning banner | Same address/QR content as desktop deposit |
-| SCR-HISTORY | `/history` | Tab + filters | Pull-to-refresh; chips → filter sheet | Same tx list fields; chips replace sidebar filters |
-| SCR-TX-DETAIL | `/history/:txId` | Stack detail | — | Same detail rows as desktop drawer/modal |
-| SCR-ALERTS | `/alerts` | Tab list | Pull-to-refresh; swipe-to-delete | Same alert entities as desktop |
-| SCR-ALERT-CREATE | `/alerts/new` (sheet) | Vaul ~60% snap | Drag to dismiss | Same fields as desktop create alert |
-| SCR-SETTINGS | `/settings` | Tab grouped list | — | Same settings groups; theme/currency/notifications |
-| SCR-404 | `*` | Full-screen error | — | Same messaging; desktop has equivalent empty/error route |
-| SCR-EMPTY | `/dashboard` | Tab empty state | CTA to deposit | Same as desktop empty portfolio state |
-
----
-
-*End of mobile layouts — Crypto Wallet Dashboard (Artemis).*
+| Screen ID | Mobile Pattern | Gesture Notes | Parity with Apollo |
+|-----------|---------------|---------------|-------------------|
+| SCR-LANDING | Scroll, stacked cards | — | Full parity |
+| SCR-AUTH-LOGIN | Full-screen form | Auto-focus email | Full parity |
+| SCR-AUTH-SIGNUP | Full-screen form | Auto-focus name | Full parity |
+| SCR-AUTH-FORGOT | Full-screen form | — | Full parity |
+| SCR-AUTH-RESET | Full-screen form | — | Full parity |
+| SCR-DASHBOARD | Tab root, scroll | Pull-to-refresh | Full parity |
+| SCR-WALLET | Tab root, card list | Pull-to-refresh | Table → cards |
+| SCR-WALLET-DETAIL | Push stack | Pull-to-refresh | Table → cards |
+| SCR-DEPOSIT | Push stack | — | Full parity |
+| SCR-DEPOSIT-SUCCESS | Bottom sheet | — | Modal → sheet |
+| SCR-CONVERT | Tab root | Keyboard-aware | Full parity |
+| SCR-CONVERT-SUCCESS | Bottom sheet | — | Modal → sheet |
+| SCR-WITHDRAW | Push stack | Keyboard-aware | Full parity |
+| SCR-WITHDRAW-SUCCESS | Bottom sheet | — | Modal → sheet |
+| SCR-ALERTS | Push stack | — | Grid → list |
+| SCR-ALERT-CREATE | Bottom sheet | — | Modal → sheet |
+| SCR-HISTORY | Push stack | Pull-to-refresh, filter chips | Table → cards |
+| SCR-HISTORY-DETAIL | Bottom sheet | — | Modal → sheet |
+| SCR-SETTINGS | Push stack | — | Split → list |
+| SCR-SET-PROFILE | Push stack | — | Full parity |
+| SCR-SET-SECURITY | Push stack | — | Full parity |
+| SCR-SET-NOTIF | Push stack | — | Full parity |
+| SCR-SET-BANKS | Push stack | Swipe-to-delete | Full parity |
+| SCR-SET-PREFS | Push stack | — | Full parity |
+| SCR-SUPPORT | Push stack | — | Full parity |
+| SCR-404 | Full-screen | — | Full parity |

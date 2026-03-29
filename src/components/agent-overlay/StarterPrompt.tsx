@@ -14,8 +14,10 @@ Eu estou anexando o briefing do projeto nesta mensagem. Execute:
 6. ANTES de iniciar cada agente: atualize pipeline-status.json com currentAgent e activeStartedAt (timestamp real)
 7. APÓS concluir cada agente: atualize pipeline-status.json movendo para completed com startedAt, completedAt e elapsedMs REAIS (não arredonde — use timestamps com milissegundos)
 8. Copie o output do agente anterior para o input do próximo
-9. Pipeline SEQUENCIAL: Hermes → Athena → Apollo → Artemis → Hephaestus → Poseidon → Hera → Hestia → Ares → Hades → Perseus
-10. Ao final: phase "completed", escreva cursor/agents/zeus/output/final-delivery.md`;
+9. Pipeline SEQUENCIAL: Hermes → Athena → Apollo → Artemis → Hephaestus → Poseidon → Hera → Hestia → Ares → Hades (Landing Page) → Perseus (Desktop Test)
+10. OBRIGATÓRIO: Poseidon DEVE implementar sistema de tema dark/light (dark como padrão) com botão toggle
+11. OBRIGATÓRIO: Hades cria a Landing Page (NÃO é mobile tester) — hero, features, social proof, CTA, footer
+12. Ao final: phase "completed", escreva cursor/agents/zeus/output/final-delivery.md`;
 
 export function StarterPrompt() {
   const [copied, setCopied] = useState(false);

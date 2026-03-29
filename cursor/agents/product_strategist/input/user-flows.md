@@ -1,231 +1,399 @@
-# User Flows — Crypto Wallet Dashboard
+# User Flows — CryptoFolio
 
-## F-DASH-001: Visualizar Dashboard (Happy Path)
+## Convenções
 
-**Actor**: Usuário Casual (P1)
-**Entry**: Abertura do app / navegação para Dashboard
-**Screen**: SCR-HOME
-
-1. Usuário abre o app → redireciona para `/dashboard`
-2. Dashboard carrega e exibe:
-   - Saldo total consolidado em BRL no topo
-   - Lista de moedas com saldo, valor em fiat e variação 24h
-   - Destaques de variação significativa (badge ou seção especial)
-3. Usuário pode:
-   - **Buscar moeda**: digita no campo de busca → lista filtra em tempo real
-   - **Ver detalhes de uma moeda**: observa saldo, variação, valor
-   - **Ação rápida**: clica em Converter / Sacar / Depositar → navega para tela correspondente
-4. **Exit**: Navegação para qualquer tela via sidebar/bottom nav, ou ação rápida
-
-### F-DASH-001-ERR: Dashboard — Error Paths
-- **Erro de carregamento**: Se dados mock falham → exibir estado de erro com botão "Tentar novamente"
-- **Empty state (SCR-EMPTY)**: Se usuário não tem moedas → exibir mensagem "Você ainda não tem moedas" com CTA "Fazer primeiro depósito" → navega para SCR-DEPOSIT
+- **Flow ID**: `F-{DOMAIN}-{NNN}` — identificador estável
+- **Screen refs**: `S-{ID}` conforme definido em `sitemap.md` e `scope.md`
+- **[if]** — ponto de decisão / bifurcação
+- **[error]** — caminho de erro
+- **[success]** — caminho de sucesso
 
 ---
 
-## F-CONV-001: Converter Moedas (Happy Path)
+## F-AUTH-001: Cadastro de Novo Usuário
 
-**Actor**: Usuário Casual (P1)
-**Entry**: Dashboard (quick action "Converter") ou Sidebar/Nav
-**Screen**: SCR-CONVERT
+**Ator**: Visitante (P2)
+**Objetivo**: Criar conta na plataforma
+**Entry point**: S-LANDING ou S-AUTH-LOGIN (link "Criar conta")
 
-1. Usuário clica em "Converter" → navega para `/convert`
-2. Tela exibe:
-   - Seletor de moeda de origem (dropdown com busca)
-   - Campo de valor a converter
-   - Seletor de moeda de destino (dropdown com busca)
-   - Botão de swap (inverter par)
-   - Preview do valor convertido em tempo real
-   - Taxa de câmbio e fee estimado
-3. Usuário seleciona moeda de origem (ex: BTC)
-4. Usuário digita o valor (ex: 0.01 BTC)
-5. Usuário seleciona moeda de destino (ex: ETH)
-6. Preview atualiza automaticamente (ex: ~0.15 ETH)
-7. Usuário clica "Converter"
-8. **Modal de confirmação** aparece com resumo:
-   - De: 0.01 BTC
-   - Para: ~0.15 ETH
-   - Taxa: 0.1%
-   - Botões: "Confirmar" / "Cancelar"
-9. Usuário clica "Confirmar"
-10. Toast de sucesso: "Conversão realizada com sucesso!"
-11. **Exit**: Retorna ao Dashboard ou permanece para nova conversão
+1. Usuário acessa S-AUTH-SIGNUP
+2. Preenche formulário: nome, email, senha, confirmar senha
+3. Clica em "Criar conta"
+4. **[if]** Validação falha (email inválido, senha fraca, senhas não coincidem)
+   - 4a. Exibe mensagens de erro inline abaixo dos campos
+   - 4b. Volta ao passo 2
+5. **[if]** Email já existe
+   - 5a. Exibe erro "Email já cadastrado"
+   - 5b. Link para "Fazer login"
+6. **[success]** Conta criada
+7. Redireciona para S-DASH (Dashboard) — primeiro acesso (empty state)
 
-### F-CONV-001-ERR: Conversão — Error Paths
-- **Saldo insuficiente**: Ao digitar valor > saldo disponível → campo fica vermelho + mensagem "Saldo insuficiente" → botão "Converter" desabilitado
-- **Mesma moeda**: Se origem = destino → mensagem "Selecione moedas diferentes" → botão desabilitado
-- **Valor zero/vazio**: Botão "Converter" permanece desabilitado
-- **Valor inválido**: Caracteres não numéricos → campo rejeita input
-- **Falha na conversão**: Toast de erro "Erro ao converter. Tente novamente."
+**Edge cases**:
+- E1: Usuário perde conexão durante cadastro → toast de erro com "Tentar novamente"
+- E2: Primeiro acesso → Dashboard mostra empty state com CTAs para "Fazer primeiro depósito"
 
 ---
 
-## F-SAQUE-001: Sacar Moedas (Happy Path)
+## F-AUTH-002: Login
 
-**Actor**: Usuário Casual (P1)
-**Entry**: Dashboard (quick action "Sacar") ou Sidebar/Nav
-**Screen**: SCR-WITHDRAW
+**Ator**: Visitante (P2)
+**Objetivo**: Acessar conta existente
+**Entry point**: S-LANDING, S-AUTH-SIGNUP (link "Já tenho conta"), URL direta
 
-1. Usuário clica em "Sacar" → navega para `/withdraw`
-2. Tela exibe:
-   - Seletor de moeda
-   - Saldo disponível para a moeda selecionada
-   - Campo de valor a sacar
-   - Seletor de método: Crypto (endereço) / Fiat (dados bancários)
-   - Se crypto: campo de endereço de destino + seleção de rede
-   - Se fiat: campos de dados bancários (banco, agência, conta)
-   - Taxa estimada de saque
-3. Usuário seleciona moeda (ex: BTC)
-4. Seleciona método: Crypto
-5. Digita endereço de destino
-6. Seleciona rede (ex: Bitcoin Network)
-7. Digita valor (ex: 0.005 BTC)
-8. Tela mostra: taxa estimada, valor líquido a receber
-9. Clica "Sacar"
-10. **Modal de confirmação** com resumo completo
-11. Usuário clica "Confirmar"
-12. Toast de sucesso: "Saque solicitado com sucesso!"
-13. **Exit**: Retorna ao Dashboard; transação aparece em Histórico como "Pendente"
-
-### F-SAQUE-001-ERR: Saque — Error Paths
-- **Saldo insuficiente**: Valor > saldo → campo vermelho + mensagem + botão desabilitado
-- **Endereço inválido** (crypto): Formato incorreto → mensagem "Endereço inválido para esta rede"
-- **Valor mínimo**: Abaixo do mínimo permitido → mensagem "Valor mínimo: X"
-- **Campos obrigatórios vazios**: Botão "Sacar" permanece desabilitado
-- **Falha no saque**: Toast de erro "Erro ao processar saque. Tente novamente."
+1. Usuário acessa S-AUTH-LOGIN
+2. Preenche email e senha
+3. Clica em "Entrar"
+4. **[if]** Credenciais inválidas
+   - 4a. Exibe erro "Email ou senha incorretos"
+   - 4b. Volta ao passo 2
+5. **[if]** Muitas tentativas (rate limit)
+   - 5a. Exibe "Muitas tentativas. Tente novamente em X minutos"
+6. **[success]** Autenticado
+7. Redireciona para S-DASH
 
 ---
 
-## F-DEP-001: Depositar Moedas (Happy Path)
+## F-AUTH-003: Recuperação de Senha
 
-**Actor**: Usuário Casual (P1)
-**Entry**: Dashboard (quick action "Depositar") ou Sidebar/Nav
-**Screen**: SCR-DEPOSIT
+**Ator**: Visitante (P2)
+**Objetivo**: Resetar senha esquecida
+**Entry point**: S-AUTH-LOGIN (link "Esqueceu a senha?")
 
-1. Usuário clica em "Depositar" → navega para `/deposit`
-2. Tela exibe:
-   - Seletor de moeda
-   - Seletor de rede
-3. Usuário seleciona moeda (ex: BTC) e rede (ex: Bitcoin Network)
-4. Tela exibe:
-   - Endereço de depósito
-   - QR Code do endereço
-   - Botão "Copiar endereço" (com feedback: "Copiado!")
-   - Aviso: "Envie apenas BTC nesta rede. Depósitos em outra moeda/rede serão perdidos."
-   - Informação de confirmações necessárias
-5. Usuário copia o endereço ou escaneia QR
-6. **Exit**: Usuário volta ao Dashboard; depósito aparecerá em Histórico quando confirmado
-
-### F-DEP-001-ERR: Depósito — Error Paths
-- **Nenhuma moeda selecionada**: Endereço não é exibido até seleção
-- **Erro ao gerar endereço**: Mensagem de erro + botão "Tentar novamente"
+1. Usuário acessa S-AUTH-FORGOT
+2. Insere email
+3. Clica em "Enviar link"
+4. **[if]** Email não encontrado
+   - 4a. Exibe mesma mensagem de sucesso (segurança — não revelar existência)
+5. **[success]** Exibe mensagem "Enviamos um link para seu email"
+6. Usuário clica no link no email → acessa S-AUTH-RESET
+7. Insere nova senha + confirmar
+8. **[if]** Token expirado
+   - 8a. Exibe "Link expirado. Solicite novo link." com botão para S-AUTH-FORGOT
+9. **[success]** Senha atualizada
+10. Redireciona para S-AUTH-LOGIN com toast "Senha atualizada com sucesso"
 
 ---
 
-## F-ALERT-001: Configurar Alerta de Preço (Happy Path)
+## F-DASH-001: Visualizar Dashboard
 
-**Actor**: Usuário Casual (P1)
-**Entry**: Navegação para Alertas ou Dashboard (ação na moeda)
-**Screen**: SCR-ALERTS → SCR-ALERT-CREATE
+**Ator**: Usuário autenticado (P1)
+**Objetivo**: Ver visão geral do portfólio
+**Entry point**: Login, Sidebar
 
-1. Usuário navega para `/alerts`
-2. Tela exibe lista de alertas ativos (se houver) com toggle on/off e botão delete
-3. Usuário clica "Criar Alerta"
-4. Formulário (modal ou inline) exibe:
-   - Seletor de moeda
-   - Tipo de alerta: "Subiu mais de X%" / "Caiu mais de X%"
-   - Campo de porcentagem (ex: 5%)
-5. Usuário preenche: BTC, "Subiu mais de", 5%
-6. Clica "Salvar"
-7. Toast: "Alerta criado com sucesso!"
-8. Alerta aparece na lista de alertas ativos
-9. **Exit**: Permanece em Alertas ou navega para outro lugar
-
-### F-ALERT-001-TRIGGER: Alerta Disparado
-1. Simulação: variação de BTC atinge +5%
-2. Badge aparece no ícone de Alertas na navegação
-3. Banner ou toast no Dashboard: "BTC subiu 5.2% nas últimas 24h!"
-4. Usuário pode clicar para ir ao Dashboard/ver detalhes
-
-### F-ALERT-001-ERR: Alertas — Error Paths
-- **Alerta duplicado**: Mesmo moeda + direção + % → mensagem "Alerta similar já existe"
-- **Porcentagem inválida**: Valor <= 0 ou não numérico → campo vermelho + mensagem
-- **Sem moeda selecionada**: Botão "Salvar" desabilitado
+1. Usuário acessa S-DASH
+2. **[if]** Primeiro acesso (sem ativos)
+   - 2a. Exibe empty state: "Seu portfólio está vazio"
+   - 2b. CTA "Fazer primeiro depósito" → S-DEP
+3. **[if]** Tem ativos
+   - 3a. Exibe saldo total em BRL (topo)
+   - 3b. Variação do portfólio (24h) — verde se positivo, vermelho se negativo
+   - 3c. Gráfico de evolução (últimos 7 dias por padrão)
+   - 3d. Lista de ativos (ícone, nome, quantidade, valor BRL, variação 24h)
+   - 3e. Quick actions: Depositar, Converter, Sacar
+   - 3f. Últimas 5 transações
+4. Usuário usa busca rápida para filtrar ativo por nome/símbolo
+5. Clicar em ativo → S-WALL-DETAIL
+6. Clicar em "Ver todas" (transações) → S-HIST
 
 ---
 
-## F-HIST-001: Visualizar Histórico (Happy Path)
+## F-WALL-001: Visualizar Carteira
 
-**Actor**: Usuário Casual (P1)
-**Entry**: Navegação para Histórico
-**Screen**: SCR-HISTORY
+**Ator**: Usuário autenticado (P1)
+**Objetivo**: Ver todos os ativos detalhadamente
+**Entry point**: Sidebar → Carteira
 
-1. Usuário navega para `/history`
-2. Tela exibe:
-   - Barra de filtros: tipo (Todos / Conversão / Saque / Depósito), período, moeda
-   - Lista de transações ordenada por data (mais recente primeiro)
-   - Cada item mostra: tipo, moeda(s), valor, data, status (badge colorido)
-3. Usuário pode filtrar por tipo, período ou moeda
-4. Usuário clica em uma transação → navega para `/history/:txId`
-
-### F-HIST-002: Detalhe da Transação
-**Screen**: SCR-TX-DETAIL
-
-1. Tela exibe todos os detalhes:
-   - Tipo de operação
-   - Data e hora
-   - Moeda(s) envolvida(s)
-   - Valor(es)
-   - Taxa cobrada
-   - Status (Pendente / Confirmada / Falhou)
-   - Transaction ID (para crypto)
-   - Endereço de destino (para saque)
-2. Botão "Voltar" → retorna ao Histórico
-
-### F-HIST-001-ERR: Histórico — Error/Edge Paths
-- **Sem transações**: Empty state → "Nenhuma transação encontrada" + CTA para fazer primeira operação
-- **Filtro sem resultados**: "Nenhuma transação para os filtros selecionados" + link "Limpar filtros"
+1. Usuário acessa S-WALL
+2. **[if]** Sem ativos → empty state com CTA para depósito
+3. Lista completa de ativos com: ícone, nome, símbolo, quantidade, valor total BRL, variação 24h
+4. Filtros: ordenar por valor (desc/asc), nome (A-Z), variação
+5. Busca por nome/símbolo
+6. Clicar em ativo → S-WALL-DETAIL
 
 ---
 
-## F-SETTINGS-001: Configurações (Happy Path)
+## F-WALL-002: Detalhe do Ativo
 
-**Actor**: Usuário Casual (P1)
-**Entry**: Navegação para Configurações
-**Screen**: SCR-SETTINGS
+**Ator**: Usuário autenticado (P1)
+**Objetivo**: Ver detalhes de uma moeda específica
+**Entry point**: S-WALL (clicar em ativo), S-DASH (clicar em ativo)
 
-1. Usuário navega para `/settings`
-2. Tela exibe seções:
-   - **Moeda de exibição**: dropdown (BRL / USD / EUR) → salva automaticamente
-   - **Tema**: toggle Dark / Light → aplica imediatamente
-   - **Notificações**: toggles para alertas de preço
-   - **Conta**: nome e email (apenas exibição no MVP)
-3. Alterações são salvas automaticamente (localStorage)
-4. Toast: "Preferências salvas"
-5. **Exit**: Navegação para qualquer tela
+1. Usuário acessa S-WALL-DETAIL (ex: `/app/wallet/bitcoin`)
+2. Exibe: ícone, nome, preço atual, variação 24h, saldo do usuário, valor em BRL
+3. Gráfico de preço (7d/30d/90d)
+4. Botões de ação: Depositar, Converter, Sacar (pré-selecionando esta moeda)
+5. Histórico de transações desta moeda (tabela desktop / cards mobile)
+6. **[if]** Sem transações → empty state "Nenhuma transação com {moeda}"
 
 ---
 
-## F-NAV-001: Navegação Global
+## F-DEP-001: Depositar Criptomoeda
 
-### Desktop
-1. Sidebar fixa à esquerda com logo, links de navegação e quick actions
-2. Link ativo destacado visualmente
-3. Conteúdo principal à direita da sidebar
+**Ator**: Usuário autenticado (P1)
+**Objetivo**: Receber cripto na carteira
+**Entry point**: Sidebar → Depositar, Dashboard quick action, Detalhe do ativo
 
-### Mobile
-1. Bottom navigation bar fixa com 4 itens: Home, Histórico, Alertas, Configurações
-2. FAB (Floating Action Button) para ações rápidas (Converter, Sacar, Depositar)
-3. Ao clicar FAB → menu expandido com 3 opções
-4. Toque em qualquer opção → navega para a tela correspondente
+1. Usuário acessa S-DEP
+2. Seleciona moeda para depósito (dropdown com ícones)
+3. **[if]** Moeda pré-selecionada (vindo de S-WALL-DETAIL) → pula seleção
+4. Exibe endereço de carteira + QR code
+5. Botão "Copiar endereço" → toast "Endereço copiado!"
+6. Aviso: "Envie apenas {moeda} para este endereço. Enviar outra moeda pode resultar em perda."
+7. **[if]** Depósito detectado
+   - 7a. Status muda para "Confirmando..." (pendente)
+   - 7b. Após confirmações da rede → S-DEP-SUCCESS (modal de sucesso)
+8. Histórico de depósitos abaixo do formulário (tabela/cards)
+9. **[if]** Sem histórico → empty state
+
+**Error paths**:
+- E1: Falha na geração do endereço → tela de erro com "Tentar novamente"
+- E2: Depósito falho (rede) → status "Falho" no histórico com detalhes
 
 ---
 
-## Edge Cases Gerais
+## F-CONV-001: Converter Moedas
 
-- **EC-001 — Primeiro acesso (empty state)**: Usuário sem moedas → Dashboard exibe SCR-EMPTY com orientação para primeiro depósito
-- **EC-002 — URL inválida**: Qualquer rota não reconhecida → SCR-404 com link para Dashboard
-- **EC-003 — Dados não carregados**: Skeleton/loading state em todas as telas enquanto dados mockados "carregam"
-- **EC-004 — Ação em moeda com saldo zero**: Botão de saque/conversão desabilitado ou mensagem informativa
-- **EC-005 — Muitas moedas na lista**: Scroll suave + busca funcional para filtrar
-- **EC-006 — Notificação de alerta enquanto navega**: Toast não intrusivo que aparece sobre qualquer tela
+**Ator**: Usuário autenticado (P1)
+**Objetivo**: Trocar uma moeda por outra
+**Entry point**: Sidebar → Converter, Dashboard quick action, Detalhe do ativo
+
+1. Usuário acessa S-CONV
+2. Seleciona moeda de origem (ex: BTC) — dropdown com saldo disponível
+3. Seleciona moeda de destino (ex: ETH) — dropdown
+4. **[if]** Moedas pré-selecionadas (vindo de contexto) → preenche automaticamente
+5. Insere valor a converter
+6. Preview em tempo real: "Você receberá ~X.XX ETH"
+7. Exibe taxa de conversão e fee estimado
+8. **[if]** Saldo insuficiente
+   - 8a. Mensagem inline "Saldo insuficiente. Disponível: X.XX BTC"
+   - 8b. Botão de submit desabilitado
+9. **[if]** Valor menor que mínimo → mensagem "Valor mínimo: X.XX"
+10. Clica em "Converter"
+11. Modal de confirmação com resumo: de, para, valor, taxa, fee
+12. Confirma no modal
+13. **[if]** Erro no servidor → toast de erro "Falha na conversão. Tente novamente."
+14. **[success]** → Modal/tela de sucesso (S-CONV-SUCCESS) com:
+    - Ícone de sucesso (check verde)
+    - Resumo: "X.XX BTC convertidos para Y.YY ETH"
+    - Botão "Baixar Recibo"
+    - Botão "Voltar para Conversão"
+15. Histórico de conversões abaixo do formulário
+16. **[if]** Sem histórico → empty state
+
+---
+
+## F-SAQUE-001: Sacar (Withdrawal)
+
+**Ator**: Usuário autenticado (P1)
+**Objetivo**: Enviar cripto para wallet externa ou fiat para conta bancária
+**Entry point**: Sidebar → Sacar, Dashboard quick action, Detalhe do ativo
+
+1. Usuário acessa S-SAQUE
+2. Seleciona moeda para saque (dropdown)
+3. **[if]** Moeda é cripto (BTC, ETH, etc.)
+   - 3a. Insere endereço de destino (wallet externa)
+   - 3b. Insere valor
+   - 3c. Exibe fee de rede estimado e valor líquido
+4. **[if]** Moeda é fiat (BRL)
+   - 4a. Seleciona conta bancária cadastrada (ou adicionar nova)
+   - 4b. **[if]** Sem contas cadastradas → link para S-SET-BANKS "Cadastre uma conta primeiro"
+   - 4c. Insere valor
+   - 4d. Exibe taxa (se houver) e valor líquido
+5. **[if]** Saldo insuficiente → mensagem inline, botão desabilitado
+6. Clica em "Sacar"
+7. Modal de confirmação: moeda, valor, destino, fee, valor líquido
+8. Confirma no modal
+9. **[if]** Erro → toast de erro
+10. **[success]** → S-SAQUE-SUCCESS (modal/tela):
+    - Ícone de sucesso
+    - "Saque de X.XX BTC enviado para {endereço/conta}"
+    - Tempo estimado: "30 min a 1 hora"
+    - Botão "Baixar Recibo"
+    - Botão "Voltar para Saque"
+11. Histórico de saques abaixo
+12. **[if]** Sem histórico → empty state
+
+---
+
+## F-ALERT-001: Criar Alerta de Preço
+
+**Ator**: Usuário autenticado (P1)
+**Objetivo**: Ser notificado quando uma moeda atingir valor-alvo
+**Entry point**: Sidebar → Alertas
+
+1. Usuário acessa S-ALERT
+2. Lista de alertas ativos (se houver)
+3. **[if]** Sem alertas → empty state "Nenhum alerta configurado" com CTA
+4. Clica em "Novo Alerta" → S-ALERT-CREATE (modal ou inline)
+5. Seleciona moeda (dropdown)
+6. Seleciona tipo: "Acima de" ou "Abaixo de"
+7. Insere valor-alvo (em BRL ou USD)
+8. **[if]** Valor igual ao preço atual → aviso "Valor muito próximo do preço atual"
+9. Clica em "Criar Alerta"
+10. **[success]** → Alerta aparece na lista, toast "Alerta criado!"
+11. Quando alerta é disparado:
+    - 11a. Toast notification no app
+    - 11b. Badge no ícone de Alertas no sidebar
+    - 11c. Alerta movido para "Histórico de alertas"
+
+**Additional flows**:
+- Editar alerta: clicar em alerta existente → modal de edição
+- Excluir alerta: botão delete → modal de confirmação "Tem certeza?" → confirmar
+
+---
+
+## F-HIST-001: Visualizar Histórico
+
+**Ator**: Usuário autenticado (P1)
+**Objetivo**: Ver todas as transações passadas
+**Entry point**: Sidebar → Histórico, Dashboard "Ver todas"
+
+1. Usuário acessa S-HIST
+2. **[if]** Sem transações → empty state
+3. Tabela (desktop) / Cards (mobile) com: tipo, moeda, valor, status, data
+4. Filtros: tipo (depósito, conversão, saque), moeda, período (7d, 30d, 90d, custom), status
+5. Ordenação por data (padrão: mais recente primeiro)
+6. Paginação (ou scroll infinito)
+7. Clicar em transação → S-HIST-DETAIL (modal):
+   - Tipo de transação
+   - Moedas envolvidas
+   - Valor, fee, valor líquido
+   - Status com timeline (pendente → confirmado)
+   - Hash da transação (se blockchain)
+   - Data/hora
+   - Botão "Baixar Recibo"
+8. Botão "Exportar CSV" → download do histórico filtrado
+
+---
+
+## F-SET-001: Editar Perfil
+
+**Ator**: Usuário autenticado (P1)
+**Entry point**: Sidebar → Configurações → Perfil
+
+1. Usuário acessa S-SET-PROFILE
+2. Exibe formulário: nome, email (read-only), avatar
+3. Edita nome
+4. Upload de avatar (imagem)
+5. Clica em "Salvar"
+6. **[if]** Erro → toast de erro
+7. **[success]** → toast "Perfil atualizado"
+
+---
+
+## F-SET-002: Alterar Senha
+
+**Ator**: Usuário autenticado (P1)
+**Entry point**: Sidebar → Configurações → Segurança
+
+1. Usuário acessa S-SET-SECURITY
+2. Insere senha atual
+3. Insere nova senha + confirmar
+4. Clica em "Alterar senha"
+5. **[if]** Senha atual incorreta → erro inline
+6. **[if]** Nova senha fraca → erro inline com requisitos
+7. **[success]** → toast "Senha alterada com sucesso"
+
+---
+
+## F-SET-003: Gerenciar Contas Bancárias
+
+**Ator**: Usuário autenticado (P1)
+**Entry point**: Sidebar → Configurações → Contas Bancárias
+
+1. Usuário acessa S-SET-BANKS
+2. **[if]** Sem contas → empty state com CTA "Adicionar conta"
+3. Lista contas cadastradas (banco, agência, conta, chave PIX)
+4. Clica em "Adicionar conta" → modal de formulário
+5. Preenche: banco, agência, conta, tipo (corrente/poupança), chave PIX
+6. Salva → conta aparece na lista
+7. Editar conta: clicar em conta → modal de edição
+8. Excluir conta: botão delete → modal "Tem certeza?" → confirmar
+9. **[if]** Conta em uso por saque pendente → não pode excluir
+
+---
+
+## F-SET-004: Preferências
+
+**Ator**: Usuário autenticado (P1)
+**Entry point**: Sidebar → Configurações → Preferências
+
+1. Usuário acessa S-SET-PREFS
+2. Toggle de tema: Dark (padrão) / Light
+3. Moeda fiat padrão: BRL (padrão) / USD
+4. Altera preferência → salva automaticamente
+5. Toast "Preferências salvas"
+
+---
+
+## F-SET-005: Configurações de Notificação
+
+**Ator**: Usuário autenticado (P1)
+**Entry point**: Sidebar → Configurações → Notificações
+
+1. Usuário acessa S-SET-NOTIF
+2. Toggles:
+   - Alertas de preço (in-app) — padrão: ON
+   - Alertas de preço (email) — padrão: OFF
+   - Confirmações de transação (email) — padrão: ON
+   - Newsletter/novidades — padrão: OFF
+3. Altera toggle → salva automaticamente
+
+---
+
+## F-SUPP-001: Acessar Suporte
+
+**Ator**: Usuário autenticado (P1)
+**Entry point**: Sidebar footer → Suporte
+
+1. Usuário acessa S-SUPP
+2. Lista de FAQs com accordion (expandir/colapsar)
+3. Campo de busca para filtrar perguntas
+4. Seção "Não encontrou resposta?" com link para email de suporte
+5. **[if]** Busca sem resultados → "Nenhum resultado. Entre em contato pelo email."
+
+---
+
+## F-LANDING-001: Landing Page
+
+**Ator**: Visitante (P2)
+**Entry point**: URL direta `/`
+
+1. Hero section: headline, sub-headline, CTA "Criar conta grátis"
+2. Features section: 3-4 cards com benefícios principais
+3. How it works: 3 passos simples
+4. CTA final: "Comece agora"
+5. Footer: links para Termos, Privacidade, Suporte
+
+---
+
+## Error Paths (Transversais)
+
+### E-NET-001: Perda de Conexão
+
+- Qualquer tela → toast "Sem conexão com a internet"
+- Ações que dependem de rede → desabilitadas com mensagem inline
+- Ao reconectar → toast "Conexão restaurada" + reload dos dados
+
+### E-AUTH-001: Sessão Expirada
+
+- Qualquer tela autenticada → redirect para S-AUTH-LOGIN
+- Toast "Sessão expirada. Faça login novamente."
+- Preservar URL de retorno para redirecionar após re-login
+
+### E-SERVER-001: Erro do Servidor (500)
+
+- Toast "Algo deu errado. Tente novamente."
+- Botão "Tentar novamente" onde aplicável
+- Não mostrar detalhes técnicos ao usuário
+
+### E-404-001: Página Não Encontrada
+
+- Exibir S-404 com mensagem amigável
+- Botão "Voltar ao Dashboard"
+- Ilustração ou ícone temático
+
+### E-PERM-001: Acesso Negado (403)
+
+- Redirect para S-DASH se o recurso não existe para o usuário
+- Toast "Você não tem permissão para acessar este recurso"

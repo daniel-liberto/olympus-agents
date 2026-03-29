@@ -1,221 +1,145 @@
-# Gesture Specifications — Crypto Wallet Dashboard (Mobile)
+# Gesture Specs — CryptoFolio (Mobile)
 
-**Product:** Crypto Wallet Dashboard (mobile)  
-**Audience:** Engineering, QA  
-**Purpose:** Single source of truth for gesture behavior with measurable thresholds for automated and manual testing.
+## Pull-to-Refresh
 
-All distances are in **logical px** (CSS/device-independent unless noted). Times are **ms**. Percentages are **of the referenced container** unless stated otherwise.
+| Screen | Enabled | Loading Indicator | Cancel |
+|--------|---------|------------------|--------|
+| SCR-DASHBOARD | Yes | Spinner at top of scroll container, below app bar | Release before threshold |
+| SCR-WALLET | Yes | Spinner at top | Release before threshold |
+| SCR-WALLET-DETAIL | Yes | Spinner at top | Release before threshold |
+| SCR-HISTORY | Yes | Spinner at top | Release before threshold |
+| SCR-ALERTS | Yes | Spinner at top | Release before threshold |
+| SCR-DEPOSIT | No | — | — |
+| SCR-CONVERT | No | — | — |
+| SCR-WITHDRAW | No | — | — |
+| SCR-SETTINGS (all) | No | — | — |
 
----
-
-## 1. Pull-to-Refresh
-
-| Attribute | Value |
-|-----------|--------|
-| **Screens** | `SCR-HOME`, `SCR-HISTORY`, `SCR-ALERTS` |
-| **Trigger distance** | **60px** pull-down from rest position |
-| **Threshold behavior** | Release **at or after** 60px → refresh runs; release **before** 60px → cancel (see below) |
-| **Loading indicator** | Circular spinner, **horizontally centered**, **vertically aligned to top of scrollable content** (below safe area / below nav as applicable) |
-| **Cancel** | Release finger **before** 60px threshold → content returns to rest; **no** network/mock refresh |
-| **Feedback at threshold** | **Light** haptic (impact style: light) when pull distance **first reaches** 60px |
-| **Minimum refresh duration** | **800ms** (mock/API layer must not complete UI “refresh” state faster than this) |
-| **Re-trigger** | Allowed only after previous refresh cycle completes (indicator dismissed) |
-
-**QA checks**
-
-- Pull **59px** and release → no refresh, no 800ms lock.
-- Pull **60px** and release → refresh starts, spinner visible ≥ **800ms**.
-- Haptic fires **once** per gesture when crossing 60px (not on every frame).
+**Threshold**: Pull down 60px to trigger
+**Indicator**: Circular spinner (`w-6 h-6 text-primary animate-spin`), appears at `-40px` from scroll top, snaps to `8px` during loading
+**Duration**: Minimum 800ms display, then hides when data loads
+**Haptic**: Light haptic feedback on threshold cross (if supported)
 
 ---
 
-## 2. Horizontal Swipe on List Items
+## Horizontal Swipe on List Rows
 
-**Applies to**
+### Swipe-to-Delete (Bank Accounts)
 
-- `SCR-ALERTS`: alert cards (rows)
-- `SCR-HISTORY`: transaction cards (rows)
+**Screen**: SCR-SET-BANKS
+**Direction**: Swipe left
+**Threshold**: 30% of row width (triggers peek of delete button), 60% (auto-trigger confirmation)
+**Visual**:
+- 0-30%: Red background reveals progressively, Trash icon appears
+- 30-60%: Delete button fully visible (`bg-destructive text-white p-4`)
+- 60%+: Haptic feedback, auto-opens delete confirmation sheet
+**Release behavior**:
+- < 30%: spring back to closed
+- 30-60%: stays open showing delete button, tap to confirm
+- \> 60%: opens CMP-ConfirmSheet automatically
+**Undo**: Not applicable (confirmation required)
 
-Assume **row width** = full content width inside horizontal padding (measure at runtime; tests may use a fixed device width).
+### Swipe on Transaction Cards
 
-### 2.1 Swipe left (destructive)
-
-| Attribute | Value |
-|-----------|--------|
-| **Direction** | Finger moves **left** (content reveals from **right**) |
-| **Reveal** | Red **“Excluir”** action |
-| **Partial swipe threshold** | **40%** of **row width** — crossing commits to “revealed” state showing button |
-| **Full swipe** | Gesture continues past reveal; on **release**, if displacement ≥ **40%** row width → treat as **full intent** → open **confirm bottom sheet** (destructive confirm) |
-| **Spring-back (under threshold)** | If release with displacement **under 40%** row width → row animates back to rest in **200ms**, **ease-out** |
-| **Haptic** | **Light** impact when displacement **first crosses** 40% row width (threshold crossing) |
-
-### 2.2 Swipe right (secondary) — `SCR-ALERTS` only
-
-| Attribute | Value |
-|-----------|--------|
-| **Direction** | Finger moves **right** |
-| **Reveal** | **Amber** toggle action (on/off) |
-| **Threshold** | **30%** of **row width** |
-| **Behavior** | **Under 30%** on release → **200ms** ease-out spring-back; **30% or more** → toggle action **armed** / applied per product rule (state change + optional haptic at crossing) |
-
-### 2.3 Undo (after destructive)
-
-| Attribute | Value |
-|-----------|--------|
-| **Toast** | Shown after destructive completes (post-confirm) |
-| **Undo label** | **“Desfazer”** |
-| **Duration** | Toast visible **4000ms** (4s) |
-| **Action** | Tap “Desfazer” within 4s reverts last destructive action |
+**Screen**: SCR-HISTORY, SCR-WALLET-DETAIL
+**Direction**: Swipe left
+**Action**: Quick view (opens detail sheet)
+**Threshold**: 25% of row width
+**Visual**: Blue/primary background reveals, Eye icon
+**Note**: Optional — tap also opens detail. Swipe is convenience shortcut.
 
 ---
 
-## 3. Long-Press
+## Long-Press
 
-| Attribute | Value |
-|-----------|--------|
-| **Screens** | `SCR-HOME` (coin cards), `SCR-HISTORY` (transaction items) |
-| **Hold duration** | **500ms** continuous press on hit target |
-| **Visual feedback** | Scale card/row to **0.97** (transform scale 0.97) |
-| **Haptic** | **Light** impact at **500ms** recognition |
-| **Menu** | Native-style **context menu** / popover anchored to element |
+| Component | Screen | Action | Feedback |
+|-----------|--------|--------|----------|
+| Asset card | SCR-DASHBOARD, SCR-WALLET | Context menu: "Depositar", "Converter", "Sacar", "Ver detalhes" | Haptic (medium), scale down 0.98 during press |
+| Transaction card | SCR-HISTORY | Context menu: "Ver detalhes", "Copiar ID" | Haptic (light) |
+| Alert card | SCR-ALERTS | Context menu: "Editar", "Excluir" | Haptic (light) |
+| Wallet address | SCR-DEPOSIT | Copy to clipboard + toast "Copiado!" | Haptic (light) |
+| TX Hash | Transaction detail sheet | Copy to clipboard + toast "Hash copiado!" | Haptic (light) |
 
-### 3.1 Coin card (`SCR-HOME`)
+**Context menu style**: native-feeling popup (Radix ContextMenu or custom)
+- `bg-popover border border-border rounded-xl shadow-lg`
+- Items: `h-11 px-4 flex items-center gap-3 text-sm`
+- Destructive items: `text-destructive`
 
-Menu entries (order top → bottom):
-
-1. **Converter**
-2. **Sacar**
-3. **Criar Alerta**
-
-### 3.2 Transaction item (`SCR-HISTORY`)
-
-Menu entries:
-
-1. **Ver Detalhes**
-2. **Copiar ID**
-
-**QA:** Release before 500ms → no menu; at 500ms → scale + haptic + menu; moving finger **> 10px** before 500ms cancels long-press (standard touch slop).
+**Long-press threshold**: 500ms
 
 ---
 
-## 4. Bottom Sheet Drag (Vaul Drawer)
+## Edge Swipe Back (iOS)
 
-**Applies to:** All bottom sheets (Vaul drawer pattern).
+**Behavior**: Default iOS swipe-from-left-edge for back navigation
+**Compatibility**: Enabled on all push-stack screens
+**Conflicts**: None — no horizontal carousels or swipe-based content that would conflict
+**Disabled on**: None (all screens support back gesture)
 
-| Attribute | Value |
-|-----------|--------|
-| **Drag handle** | Visible, **horizontally centered** |
-| **Handle size** | **32px** wide × **4px** tall |
-| **Handle color** | **zinc-600** |
-| **Backdrop** | **zinc-950** at **60%** opacity (`zinc-950/60`) |
-| **Backdrop dismiss** | Tap backdrop → sheet dismisses |
-
-### 4.1 Snap sets
-
-| Sheet class | Examples | Snap points (height % of screen) | Dismiss |
-|-------------|----------|-----------------------------------|---------|
-| **Small** | Confirm, filters | **40%** → drag down to **dismiss** | Below **40%** snap or velocity dismiss (see 4.2) |
-| **Medium** | Coin selector, create alert | **60%** → **40%** → **dismiss** | From lowest engaged snap, drag past dismiss rules |
-| **Large** | Detailed filters | **90%** → **60%** → **dismiss** | Same |
-
-Percentages are **of viewport height**.
-
-### 4.2 Dismiss via drag
-
-| Rule | Value |
-|------|--------|
-| **Dismiss** | User drags sheet **below** the **lowest** active snap point |
-| **Velocity bypass** | If downward velocity **> 500px/s**, **skip** snap-at-rest and **dismiss** (fast fling) |
-
-### 4.3 Scroll handoff
-
-| State | Behavior |
-|-------|----------|
-| Sheet at **max** snap for its class | **Internal content** scrolls |
-| Content scroll **at top** (offset 0) | Further drag on content **moves sheet** |
-| Content not at top | Drag **scrolls content** until top, then sheet drag applies |
+**Android back button**: Functions identically to iOS swipe-back (pop stack)
 
 ---
 
-## 5. Edge Swipe Back (Navigation)
+## Bottom Sheet Drag
 
-| Attribute | Value |
-|-----------|--------|
-| **Applies to** | All **stack-pushed** screens: `SCR-CONVERT`, `SCR-WITHDRAW`, `SCR-DEPOSIT`, `SCR-TX-DETAIL` |
-| **Gesture zone** | Horizontal touch must start within **0–20px** from **left** physical edge of screen |
-| **Completion threshold** | Finger displacement **≥ 40%** of **screen width** → commit **pop** (back) on release |
-| **Under threshold** | **Under 40%** on release → **spring** current screen to full width (cancel back) |
-| **Animation** | **Parallax**: current screen translates **right**; previous screen visible from left, moves at **0.3×** the current screen’s translation speed (peek) |
-| **Disabled** | **None** for listed screens (no global disable) |
-| **Conflict** | No horizontal carousels on these flows — **no** gesture conflict in MVP |
+### Drag-to-Dismiss
 
----
+| Sheet Type | Dismiss Threshold | Scroll Handoff |
+|-----------|-------------------|----------------|
+| CMP-SuccessSheet (70%) | Drag below 30% → dismiss | Internal scroll first, then sheet moves |
+| CMP-ConfirmSheet (50%) | Drag below 20% → dismiss | No internal scroll |
+| CMP-AlertCreateSheet (70%) | Drag below 30% → dismiss | Internal scroll for form |
+| CMP-TransactionDetailSheet (80%) | Drag below 40% → dismiss | Internal scroll for details |
+| CMP-FilterSheet (50%) | Drag below 20% → dismiss | Internal scroll for options |
+| CMP-BankAccountSheet (80%) | Drag below 40% → dismiss | Internal scroll for form |
 
-## 6. Scroll Behaviors
-
-### 6.1 FAB hide/show
-
-| Attribute | Value |
-|-----------|--------|
-| **Hide** | On scroll **down**: user content delta **> 10px** (cumulative per direction change) → FAB **hidden** |
-| **Show** | On scroll **up**: delta **> 10px** → FAB **visible** |
-| **Transition** | **200ms** (opacity/transform as implemented; duration fixed at 200ms) |
-
-### 6.2 Top app bar (root tabs)
-
-| Scope | `SCR-HOME`, `SCR-HISTORY`, `SCR-ALERTS` (root tab destinations) |
-|--------|------------------------------------------------------------------|
-| **Behavior** | Large title **collapses** to standard top bar when user scrolls content **down** |
-| **Transition** | **150ms** |
-
-### 6.3 Infinite scroll
-
-| Attribute | Value |
-|-----------|--------|
-| **Used** | **No** — all lists finite (mock data) for MVP |
-
-### 6.4 Scroll position preservation
-
-| Attribute | Value |
-|-----------|--------|
-| **Behavior** | When navigating **push**: History list → detail → **back**, list restores **prior scroll offset** (pixel-for-pixel within same session) |
+**Drag handle**: `w-10 h-1 bg-muted rounded-full mx-auto mt-2 mb-4`
+**Scroll handoff rule**: When sheet content is scrolled to top, further pull-down moves the sheet. When content is not at top, scroll takes priority.
+**Backdrop**: `bg-black/50`, tap to dismiss (except during loading state)
+**Animation**: `duration-300 ease-out` for open/close
 
 ---
 
-## 7. FAB Speed-Dial
+## Tap Feedback
 
-| Attribute | Value |
-|-----------|--------|
-| **Trigger** | **Tap** main FAB (**Plus** icon) |
-| **Expand animation** | **200ms**, **spring** curve (same spec as implementation spring) |
-| **Mini-FABs** | **3** items, **fan upward** with labels |
-| **Backdrop** | **zinc-950** at **40%** opacity (`zinc-950/40`) |
-| **Close actions** | Tap backdrop; tap a mini action; **tap main FAB again** (icon **rotates** to **X** while open) |
-| **Position** | **Bottom-right**; **16px** from **right** edge; **8px** above **tab bar** safe area (bottom inset + tab bar height + 8px) |
-
----
-
-## 8. Tap Feedback
-
-| Element type | Scale | Duration | Additional |
-|--------------|-------|----------|--------------|
-| **Buttons / interactive controls** | **0.98** | **100ms** | Background flash **zinc-800** |
-| **Cards** | **0.99** | **100ms** | **Subtle** shadow elevation increase on press |
-| **Links / text buttons** | — | **100ms** (press state) | **Opacity 0.7** while pressed |
-
-**QA:** Use slow-motion recording; scale and duration apply on **touch down** / press state; cards use **0.99** not **0.98**.
+| Element | Feedback | Duration |
+|---------|----------|----------|
+| Button | `active:scale-[0.98] transition-transform` | 150ms |
+| Card/Row | `active:bg-accent/10` | 150ms |
+| Tab item | Immediate color change | 0ms (instant) |
+| Icon button | `active:bg-accent/20 rounded-full` | 150ms |
+| Link text | `active:opacity-70` | 150ms |
 
 ---
 
-## Screen ID Reference (Gesture-Relevant)
+## Touch Targets
 
-| ID | Notes |
-|----|--------|
-| `SCR-HOME` | Pull-to-refresh, long-press coin cards, FAB, bar collapse |
-| `SCR-HISTORY` | Pull-to-refresh, swipe rows, long-press, preservation |
-| `SCR-ALERTS` | Pull-to-refresh, swipe L/R on rows |
-| `SCR-CONVERT`, `SCR-WITHDRAW`, `SCR-DEPOSIT`, `SCR-TX-DETAIL` | Edge swipe back |
+**Minimum size**: 44x44px for all interactive elements
+**Spacing between targets**: minimum 8px gap
+
+| Element | Minimum Size | Actual Size |
+|---------|-------------|-------------|
+| Button | 44x44px | h-12 (48px) standard |
+| Tab bar item | 44x44px | 64px wide, 44px+ tall |
+| Icon button | 44x44px | w-11 h-11 (44px) |
+| List row | 44px height | h-16 (64px) typically |
+| Toggle switch | 44x44px | Standard Switch component |
+| Accordion item | 44px height | min-h-[44px] |
+| Chip/pill | 32px height | h-8 (32px) — acceptable, grouped |
 
 ---
 
-*Document version: aligned with Crypto Wallet Dashboard mobile MVP. Update when new carousels or sheets are added.*
+## Scroll Behavior
+
+| Screen | Scroll Type | Notes |
+|--------|------------|-------|
+| SCR-DASHBOARD | Main scroll (full page) | App bar collapses on scroll (optional) |
+| SCR-WALLET | Main scroll | — |
+| SCR-WALLET-DETAIL | Main scroll | Chart fixed ratio, rest scrolls |
+| SCR-CONVERT | Main scroll + keyboard-aware | Form scrolls to show focused input |
+| SCR-WITHDRAW | Main scroll + keyboard-aware | Same as convert |
+| SCR-HISTORY | Main scroll + filter bar sticky | Filter bar sticks below app bar on scroll |
+| SCR-SETTINGS | Main scroll (short content) | — |
+| Bottom sheets | Internal scroll | Handoff to sheet drag when at top |
+
+**Momentum scrolling**: `-webkit-overflow-scrolling: touch` (default in modern browsers)
+**Overscroll**: `overscroll-behavior: contain` to prevent page bounce when inside sheets

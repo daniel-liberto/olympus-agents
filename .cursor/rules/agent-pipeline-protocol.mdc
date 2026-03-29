@@ -78,5 +78,5 @@ Each agent also writes a `status.json` to their own `output/` folder:
 | Hera | hera | responsive_specialist/ |
 | Hestia | hestia | polishing/ |
 | Ares | ares | frontend_qa/ |
-| Hades | hades | mobile_tester/ |
-| Perseus | perseus | desktop_tester/ |
+| Hades | hades | mobile_tester/ | Landing Page Creator
+| Perseus | perseus | desktop_tester/ | Desktop Tester

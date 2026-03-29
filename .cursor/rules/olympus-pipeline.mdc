@@ -26,13 +26,19 @@ This project uses a team of 12 AI agents (the Olympus team) to manage a complete
 | Hera | Queen of Gods | Responsive Design | cursor/agents/responsive_specialist/ |
 | Hestia | Goddess of Hearth | Animations | cursor/agents/polishing/ |
 | Ares | God of War | Frontend QA | cursor/agents/frontend_qa/ |
-| Hades | Semi-god | Mobile Testing | cursor/agents/mobile_tester/ |
+| Hades | God of Underworld | Landing Page Creator | cursor/agents/mobile_tester/ |
 | Perseus | Semi-god | Desktop Testing | cursor/agents/desktop_tester/ |
 
 ## Pipeline Flow (STRICTLY SEQUENTIAL)
-**Phase 0:** Init (setup, Git, clean) → **Phase 1:** Discovery → Strategy → Desktop UI/UX → Mobile UI/UX → Refinement → Frontend → Responsive → Animations → QA → Mobile Testing → Desktop Testing → **Phase 2:** Zeus Final Review → **Phase 3:** Deploy
+**Phase 0:** Init (setup, Git, clean) → **Phase 1:** Discovery → Strategy → Desktop UI/UX → Mobile UI/UX → Refinement → Frontend → Responsive → Animations → QA → Landing Page (Hades) → Desktop Testing → **Phase 2:** Zeus Final Review → **Phase 3:** Deploy
 
 **All agents run one at a time. No parallel execution.**
+
+## Mandatory Requirements
+- **Theme:** Dark/light system with toggle (dark default) — Poseidon implements, all agents respect
+- **Landing Page:** Hades creates a premium landing page with Framer Motion, Embla, ReactBits.dev effects
+- **Quality Standards:** All agents follow `.cursor/rules/quality-standards.mdc`
+- **Login/Register:** Must be polished, professional, with proper form validation and both theme support
 
 ## Communication
 - Each agent reads from their `input/` folder and writes to their `output/` folder

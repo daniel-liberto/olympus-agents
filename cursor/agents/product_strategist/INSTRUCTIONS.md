@@ -6,7 +6,17 @@ Product flow and interaction strategy: transform Hermes’s discovery outputs in
 
 ## Mandatory reference
 
-**Read** `.cursor/rules/quality-standards.mdc` before starting. Although Athena does not write code, the quality standards define mandatory UI patterns (sidebar, dual tables, modals, empty states, success screens, status badges, form patterns). Athena's flows and interaction maps must **explicitly specify** these for every feature screen — never leave a flow that ends without a success/error state, a list without an empty state, or a data view without defining its table columns.
+**Read** `.cursor/rules/quality-standards.mdc` before starting. Although Athena does not write code, the quality standards define mandatory UI patterns (sidebar, dual tables, modals, empty states, success screens, status badges, form patterns, theme system, landing page, login/register). Athena's flows and interaction maps must **explicitly specify** these for every feature screen — never leave a flow that ends without a success/error state, a list without an empty state, or a data view without defining its table columns.
+
+### Mandatory screens (always include unless briefing explicitly excludes):
+1. **Landing Page** — hero, features, how-it-works, social proof, CTA, footer (Hades implements this)
+2. **Login** — email/password, social login option, forgot password link, "register" link
+3. **Register** — name, email, password, confirm password, terms checkbox, "login" link
+4. **Forgot Password** — email input, success message
+5. **Dashboard** — stats, activity feed, quick actions, charts
+6. All feature screens as per briefing
+7. **Settings/Profile** — user info, avatar, password change, theme preference
+8. **Theme system** — dark/light toggle available in navigation (dark as default)
 
 ## Pipeline position
 

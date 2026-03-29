@@ -182,6 +182,19 @@ Add as needed for specs:
 - **React Router** — routing, layouts, nested routes.
 - **React Hook Form** + **Zod** — all non-trivial forms.
 - **Recharts** — dashboard charts when specs call for charts.
+- **next-themes** — dark/light theme system (MANDATORY).
+- **Framer Motion (motion)** — animations (used by Hestia later, but setup the provider).
+
+### MANDATORY: Dark/Light Theme System
+
+Poseidon MUST implement a theme system:
+1. Use `next-themes` with `ThemeProvider` wrapping the app
+2. **Default theme: "dark"** — this is the priority theme, design and test dark first
+3. Define CSS variables for BOTH `:root` (light) and `.dark` themes in `index.css`
+4. Add a theme toggle button (sun/moon icon) in the navigation/header
+5. ALL colors must use semantic tokens (`bg-background`, `text-foreground`, `border-border`) — NEVER hard-code `text-white` or `bg-black`
+6. Test BOTH themes — the light theme must look just as good as the dark theme
+7. Light theme uses inverted zinc scale: light backgrounds (`--background: 0 0% 100%`), dark text (`--foreground: 240 10% 4%`)
 
 ---
 

@@ -223,3 +223,68 @@ After a major action (deposit, withdraw, convert):
 - "Download Receipt" secondary button
 - "Back to [feature]" primary button
 - Animate in with `animate-in fade-in`
+
+### 15. Dark/Light Theme System (MANDATORY)
+
+Every project MUST implement a dark/light theme system:
+- **Default theme: DARK** — this is the priority theme
+- Use `next-themes` (already in the stack) for theme management
+- Theme toggle button in the navigation (sun/moon icon)
+- CSS variables MUST define BOTH `.dark` and `:root` (light) theme values
+- All components must look good in BOTH themes — test both
+- NEVER hard-code `text-white` or `bg-black` — use `text-foreground`, `bg-background` etc.
+- The light theme uses the same zinc scale but inverted (light backgrounds, dark text)
+
+```css
+:root {
+  --background: 0 0% 100%;
+  --foreground: 240 10% 4%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 4%;
+  --muted: 240 5% 96%;
+  --muted-foreground: 240 4% 46%;
+  --border: 240 6% 90%;
+  --primary: 20 100% 50%;
+  --primary-foreground: 0 0% 100%;
+}
+.dark {
+  --background: 0 0% 5%;
+  --foreground: 0 0% 98%;
+  --card: 0 0% 7%;
+  --card-foreground: 0 0% 98%;
+  --muted: 0 0% 10%;
+  --muted-foreground: 0 0% 60%;
+  --border: 240 4% 16%;
+  --primary: 20 100% 50%;
+  --primary-foreground: 0 0% 100%;
+}
+```
+
+### 16. Landing Page Quality Standards
+
+The landing page (created by Hades) must be premium quality:
+- Hero section with impactful visual (gradient, animated background, or subtle particle effect)
+- Section breaks with visual separators
+- Feature cards with icons and clear descriptions
+- Social proof / testimonials section
+- CTA sections that drive action
+- Footer with proper links
+- Works perfectly on mobile (320px) through desktop (1920px)
+- Animations: scroll-triggered reveals, hover effects, text animations
+- Libraries allowed: Framer Motion, Embla Carousel, ReactBits.dev effects (sparingly)
+- Theme toggle visible in the navigation bar
+- BOTH dark and light themes must look polished
+
+### 17. Login/Register Page Quality Standards
+
+Authentication screens must be polished and professional:
+- Clean, centered layout (centered card on desktop, full-width on mobile)
+- Logo/brand at the top
+- Form fields with proper labels, validation, and error states
+- "Show/hide password" toggle
+- Social login buttons if applicable
+- Link between login and register pages
+- Loading state on submit button
+- Success/error feedback
+- Works in BOTH dark and light themes
+- Consider a side illustration or brand panel on desktop (split layout)

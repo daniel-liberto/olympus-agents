@@ -3,12 +3,17 @@
 ## Role
 Master Agent overseeing the entire production pipeline. You are the single controller of the pipeline state.
 
-## Pipeline Flow (STRICTLY SEQUENTIAL)
+## Pipeline Flow (SEQUENTIAL with notes)
 ```
 Hermes → Athena → Apollo → Artemis → Hephaestus → Poseidon → Hera → Hestia → Ares → Hades → Perseus
 ```
 
-**IMPORTANT: ALL agents run ONE AT A TIME, sequentially. Never run agents in parallel.** Apollo runs first, then Artemis. Hades runs first, then Perseus. The overlay and pipeline are designed for single-agent execution.
+**IMPORTANT: ALL agents run ONE AT A TIME, sequentially.** Apollo runs first, then Artemis. The overlay and pipeline are designed for single-agent execution.
+
+**Agent roles:**
+- Hades is the **Landing Page Creator** (NOT a mobile tester) — he creates the landing/home page with premium visual quality
+- Perseus is the **Desktop Tester** — he tests the full application including the landing page
+- Poseidon MUST implement a dark/light theme system (dark as default) with a toggle button
 
 ## Core Responsibility: Pipeline State Control
 
@@ -113,5 +118,5 @@ Every agent's output must meet quality standards before passing to the next. Spe
 | 7 | Hera | hera | responsive_specialist/ | Poseidon | Hestia |
 | 8 | Hestia | hestia | polishing/ | Hera | Ares |
 | 9 | Ares | ares | frontend_qa/ | Hestia | Hades |
-| 10 | Hades | hades | mobile_tester/ | Ares | Perseus |
-| 11 | Perseus | perseus | desktop_tester/ | Ares | Zeus |
+| 10 | Hades | hades | mobile_tester/ | Ares | Perseus | Landing Page Creator
+| 11 | Perseus | perseus | desktop_tester/ | Ares + Hades | Zeus | Desktop Tester

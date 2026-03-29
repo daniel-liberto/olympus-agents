@@ -37,15 +37,21 @@ Apply these rules in every screen spec and in `design-tokens.md`.
 ### Color palette
 
 - **Neutrals:** Use **zinc only**—never `gray` for neutral UI.
-- **Dark theme baseline:**
+- **Dark theme baseline (DEFAULT):**
   - Page background: **zinc-950**
   - Cards / panels: **zinc-900**
   - Default borders: **zinc-800**
   - Subtle dividers: **zinc-700**
-  - Muted / helper text: **zinc-600**
-  - Secondary body: **zinc-400**
+  - Secondary body: **zinc-400** (minimum for readability — NEVER zinc-600/700/800 for text on dark)
   - Primary body: **zinc-200**
   - Headings / emphasis: **zinc-100**
+- **Light theme (also required):**
+  - Page background: **white / zinc-50**
+  - Cards / panels: **white / zinc-100**
+  - Borders: **zinc-200 / zinc-300**
+  - Body text: **zinc-700 / zinc-800**
+  - Headings: **zinc-900**
+- **MANDATORY:** Specify designs for BOTH themes. Use CSS variable names (`bg-background`, `text-foreground`) not hard-coded colors. Include a **theme toggle** button (sun/moon icon) in the navigation.
 - **Accents:** **Amber / orange** sparingly for CTAs and highlights. **Emerald** for success. **Red** for errors and destructive emphasis.
 
 ### Premium feel

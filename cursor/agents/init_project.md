@@ -217,27 +217,30 @@ Output: cursor/agents/frontend_qa/output/
   └── status.json
 ```
 
-### Stage 10a — Mobile Testing (Hades)
+### Stage 10 — Landing Page (Hades)
 
 ```
 Input:  cursor/agents/frontend_qa/output/ → cursor/agents/mobile_tester/input/
 Output: cursor/agents/mobile_tester/output/
-  ├── mobile-test-report.md
-  ├── mobile-bugs.md
+  ├── landing-page-specs.md
+  ├── Landing page components (in codebase)
   └── status.json
 ```
 
-### Stage 10b — Desktop Testing (Perseus)
+**Hades** cria a Landing Page completa — hero, features, social proof, CTAs, footer. Usa Framer Motion, Embla Carousel e ReactBits.dev para animações premium.
+
+### Stage 11 — Desktop Testing (Perseus)
 
 ```
-Input:  cursor/agents/frontend_qa/output/ → cursor/agents/desktop_tester/input/
+Input:  cursor/agents/frontend_qa/output/ + cursor/agents/mobile_tester/output/
+        → cursor/agents/desktop_tester/input/
 Output: cursor/agents/desktop_tester/output/
   ├── desktop-test-report.md
   ├── desktop-bugs.md
   └── status.json
 ```
 
-> Hades roda primeiro, depois Perseus — sequencialmente.
+> Perseus testa a aplicação completa incluindo a Landing Page criada por Hades.
 
 ---
 
@@ -336,5 +339,5 @@ git push -u origin main
 | 7 | Hera | Rainha dos Deuses | `responsive_specialist/` | Poseidon | Hestia |
 | 8 | Hestia | Deusa do Lar | `polishing/` | Hera | Ares |
 | 9 | Ares | Deus da Guerra | `frontend_qa/` | Hestia | Hades, Perseus |
-| 10a | Hades | Semideus | `mobile_tester/` | Ares | Zeus |
-| 10b | Perseus | Semideus | `desktop_tester/` | Ares | Zeus |
+| 10 | Hades | Deus do Submundo | `mobile_tester/` | Ares | Perseus | Landing Page Creator
+| 11 | Perseus | Semideus | `desktop_tester/` | Ares + Hades | Zeus | Desktop Tester

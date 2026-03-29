@@ -1,31 +1,15 @@
 # Bug list — Frontend QA (Ares)
 
-Severity: **critical** | **major** | **minor** | **cosmetic**
+| ID | Severity | Area | Description | Status |
+|----|----------|------|-------------|--------|
+| B1 | **Major** | `DashboardPage.tsx`, `WalletPage.tsx`, `WalletDetailPage.tsx` | `import` declarations appeared after `const` statements, which is invalid in standard ECMAScript modules and fragile for tooling. | **Fixed** — all imports grouped at top; `MotionTableRow` (and `quickActionBtnClass` on detail) defined after imports. |
+| B2 | **Minor** | `DepositPage.tsx` (`FakeQr`) | Decorative QR used `bg-white`, conflicting with dark-theme guidance (bare white panel). | **Fixed** — `bg-zinc-100` with `bg-zinc-950` / `bg-zinc-200` modules for QR-like contrast. |
+| B3 | **Minor** | `BankAccountsPage.tsx` | Zod `.min()` rules lacked user-facing Portuguese messages (defaults are less clear). | **Fixed** — descriptive messages per field. |
+| B4 | **Minor** | `AlertsPage.tsx` | `targetPriceBrl` and `coinId` validation lacked explicit error copy. | **Fixed** — Portuguese messages added. |
+| B5 | **Minor** | `ConvertPage.tsx` | `fromId` / `toId` used `.min(1)` without custom messages. | **Fixed** — Portuguese messages added. |
 
----
+## Not treated as product bugs (documented)
 
-## Fixed during this audit
-
-| ID | Severity | Area | Description | Resolution |
-|----|----------|------|-------------|------------|
-| QA-001 | minor | Dashboard | Empty search state could appear together with loading skeletons when the filtered list was empty during the initial simulated load, causing conflicting UI. | Gate empty message with `!listLoading && filteredBalances.length === 0` in `Dashboard.tsx`. |
-
----
-
-## Open issues
-
-| ID | Severity | Area | Description |
-|----|----------|------|-------------|
-| QA-002 | major | Tooling | `npm run lint` fails: ESLint 9 expects `eslint.config.js` (flat config); repository has no working ESLint config, so automated linting cannot run. |
-| QA-003 | minor | Deposit | QR area shows a Lucide `QrCode` icon inside a styled box, not an encoded/scannable QR image for the deposit address. |
-| QA-004 | minor | History | Desktop transaction table rows are mouse-only (`onClick` on `<TableRow>`); no keyboard equivalent or `tabIndex`/Enter handling (mobile cards implement keyboard). |
-| QA-005 | minor | Withdraw | Crypto/Fiat method toggle uses plain `<button>` elements without `aria-pressed` or a `tablist` pattern for screen readers. |
-| QA-006 | minor | Alerts / Settings | No simulated async **error** state for list/settings persistence (only toast validation on create); acceptable for mock UI but incomplete vs. full error-state matrix. |
-| QA-007 | cosmetic | App | Extra nested route `/olympus` → `Index` beyond the nine specified dashboard routes (not a defect if intentional). |
-
----
-
-## Informational (not defects)
-
-- **Tailwind `gray-*` in `src/`:** Ripgrep found **zero** occurrences; palette consistently uses `zinc-*` (and semantic tokens where applicable).
-- **TransactionDetail** imports `toast` from `sonner` while other pages use `@/components/ui/sonner` — behavior works; minor consistency only.
+- **Agent overlay** (`src/components/agent-overlay/*`): Contains `text-zinc-600` etc.; explicitly excluded from edits per pipeline rules.
+- **Bundle size warning:** Informational only from Vite; does not fail the build.
+- **`Index.tsx` unmounted:** Not linked from `App.tsx`; no change requested.

@@ -1,9 +1,0 @@
-{
-  "agent": "artemis",
-  "status": "completed",
-  "startedAt": "2026-03-28T21:37:27.202Z",
-  "completedAt": "2026-03-28T21:39:37.519Z",
-  "elapsedMs": 130317,
-  "summary": "Mobile UI/UX completo: layouts com bottom tabs + FAB, componentes mobile com Vaul sheets, gesture specs com valores concretos para QA",
-  "outputFiles": ["mobile-layouts.md", "mobile-components.md", "gesture-specs.md"]
-}
